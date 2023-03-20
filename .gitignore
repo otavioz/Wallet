@@ -1,0 +1,8 @@
+﻿/examples
+/keys
+.env
+test.py
+token.pickle
+*.log
+Pipfile.lock
+*.cfg
