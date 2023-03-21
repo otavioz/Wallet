@@ -1,6 +1,9 @@
 ﻿import logging
 from telegram import ForceReply, Update
-from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes, MessageHandler, filters
+import pytz
+import datetime as dtm
+from telegram.constants import ParseMode
+from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes, MessageHandler, Defaults,filters
 import os
 from dotenv import load_dotenv
 import time as ttime
@@ -40,7 +43,7 @@ async def callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
     #TODO não funciona com botões na mesma linha
     selected = [i[0].text for i in query.message.reply_markup.inline_keyboard if i[0].callback_data == query.data][0]
-    await query.edit_message_text(text=selected)
+    await query.edit_message_text(text=f'✅ {selected}')
 
     if '/finances' in query.data:
         await FinancesHandler.finances(update=query,text=query.data)
@@ -58,28 +61,30 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(update.message.text)
 
 def batch():
-    start_hour = "05"
-    while True:
-        try:
-            now = datetime.now()
-            if now.strftime("%H") == start_hour and now.strftime("%M") == "50":  #Atualizar Planilha
-                ttime.sleep(59)
-                logging.info(f'{datetime.now()} - Batch processing started.')
-                FinancesHandler.batch()
-                logging.info(f'{datetime.now()} - Batch processing ended with success.')
-                ttime.sleep(36000) #Sleeping for 10h
-        except errors.HttpError as e:
-            logging.error(f'{datetime.now()} - Error while calling Google Sheets API {e}')
-        except UnicodeDecodeError as e:
-            logging.error(f'{datetime.now()} - Unicode error while reading csv file: {e}')
-        except Exception as e:
-            logging.error(f'{datetime.now()} - Batch process failed: {traceback.format_exc()}')
+    if os.getenv('env') == 'PROD':
+        start_hour = "05"
+        while True:
+            try:
+                now = datetime.now()
+                if now.strftime("%H") == start_hour and now.strftime("%M") == "50":  #Atualizar Planilha
+                    ttime.sleep(59)
+                    logging.info(f'{datetime.now()} - Batch processing started.')
+                    FinancesHandler.batch()
+                    logging.info(f'{datetime.now()} - Batch processing ended with success.')
+                    ttime.sleep(36000) #Sleeping for 10h
+            except errors.HttpError as e:
+                logging.error(f'{datetime.now()} - Error while calling Google Sheets API {e}')
+            except UnicodeDecodeError as e:
+                logging.error(f'{datetime.now()} - Unicode error while reading csv file: {e}')
+            except Exception as e:
+                logging.error(f'{datetime.now()} - Batch process failed: {traceback.format_exc()}')
 
 
 def main() -> None:
     """Start the bot."""
     # Create the Application and pass it your bot's token.
-    application = Application.builder().token(os.getenv('bot_token')).build()
+    defaults = Defaults(parse_mode=ParseMode.HTML, tzinfo=pytz.timezone('America/Sao_Paulo'))
+    application = Application.builder().token(os.getenv('bot_token')).defaults(defaults).build()
 
     # on different commands - answer in Telegram
     application.add_handler(CommandHandler("finances", finances))
@@ -94,6 +99,7 @@ def main() -> None:
 
     #Batch thread
     Thread(target=batch).start()
+    print('[application polling running]')
 
 
 

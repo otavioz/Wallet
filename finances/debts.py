@@ -76,6 +76,10 @@ class Debt:
         """
         pass
 
+    @staticmethod
+    def get_closing_day():
+        return DataBase.read_debts_domain("closing_day")
+
     def __get_refmonth(self,datetime_):
         closing_day = Debt.get_closing_day()
         ref_month = datetime.strptime(datetime_,"%Y-%m-%dT%H:%M:%SZ")
@@ -86,10 +90,6 @@ class Debt:
     @staticmethod
     def debtor_list():
         return DataBase.read_debts_domain("debtors")
-    
-    @staticmethod
-    def get_closing_day():
-        return DataBase.read_debts_domain("closing_day")
 
     @staticmethod
     def origin_list():
@@ -204,7 +204,7 @@ class DriveDebt(Debt):
                 origin= jsn[model.origin],
                 amount= jsn[model.amount],
                 category= jsn[model.category],
-                timedate= datetime.strptime(jsn[model.timedate],"%d/%m/%Y"),
+                timedate= datetime.strptime(jsn[model.timedate],"%d/%m/%Y %H:%M:%S"),
                 ref_month= self.__get_refmonth(jsn[model.ref_month]),
                 details= jsn[model.details],
                 debtor= jsn[model.debtor],

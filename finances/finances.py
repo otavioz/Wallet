@@ -2,7 +2,7 @@
 from google.gsheets import GSheets
 import consts as CONS
 from finances.nubank import Nubank
-from finances.debts import DriveDebt,NuAccountDebt,NubankDebt
+from finances.debts import Debt,DriveDebt,NuAccountDebt,NubankDebt
 from finances.model import MonthlyLimitModel,DebtModel
 from db.db import DataBase
 
@@ -11,7 +11,7 @@ class Finances:
 
     def get_current_month(self) -> int:
         today = datetime.now()
-        if today.day < self.get_closing_day():
+        if today.day < Debt.get_closing_day():
             return today.month
         return today.month + 1
 

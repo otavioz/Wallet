@@ -1,5 +1,6 @@
 ﻿/examples
 /keys
+/testcases
 .env
 test.py
 token.pickle
