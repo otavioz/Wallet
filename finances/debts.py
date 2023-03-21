@@ -80,14 +80,11 @@ class Debt:
     def get_closing_day():
         return DataBase.read_debts_domain("closing_day")
 
-    #TODO Overwrite
-    @staticmethod
-    def get_refmonth(datetime_):
-        closing_day = Debt.get_closing_day()
-        ref_month = datetime.strptime(datetime_,"%Y-%m-%dT%H:%M:%SZ")
-        if ref_month.day >= closing_day:
-            ref_month = ref_month + relativedelta(months=1)
-        return ref_month
+    def __get_refmonth(datetime_):
+        """
+        Overwrited by child classes.
+        """
+        pass
 
     @staticmethod
     def debtor_list():
@@ -118,10 +115,17 @@ class NubankDebt(Debt):
                 amount= self.__getamount(jsn),
                 category= jsn['title'],
                 timedate= datetime.strptime(jsn['time'],"%Y-%m-%dT%H:%M:%SZ"),
-                ref_month= Debt.get_refmonth(jsn['time']),
+                ref_month= self.__get_refmonth(jsn['time']),
                 details=self.__get_details(jsn['details']))
         self.__add_payment_charges()
 
+    def __get_refmonth(self,datetime_):
+        closing_day = Debt.get_closing_day()
+        ref_month = datetime.strptime(datetime_,"%Y-%m-%dT%H:%M:%SZ")
+        if ref_month.day >= closing_day:
+            ref_month = ref_month + relativedelta(months=1)
+        return ref_month
+    
     def __getamount(self,jsn):
         if 'charges' in jsn['details']:
             self.count = jsn['details']['charges']['count']
@@ -148,10 +152,17 @@ class NuAccountDebt(Debt):
                 amount= self.__getamount(jsn),
                 category= 'movimentação',
                 timedate= datetime.strptime(jsn['postDate'],"%Y-%m-%d"),
-                ref_month= Debt.get_refmonth(jsn['postDate']),
+                ref_month= self.__get_refmonth(jsn['postDate']),
                 details=self.__get_details(jsn),
                 debtor=self.__get_debtor(jsn['detail']))
         self.__add_payment_charges()
+
+    def __get_refmonth(self,datetime_):
+        closing_day = Debt.get_closing_day()
+        ref_month = datetime.strptime(datetime_,"%Y-%m-%d")
+        if ref_month.day >= closing_day:
+            ref_month = ref_month + relativedelta(months=1)
+        return ref_month
     
     def __getamount(self,jsn):
         if jsn['title'] == 'Pagamento agendado':

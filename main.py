@@ -95,13 +95,13 @@ def main() -> None:
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
 
     # Run the bot until the user presses Ctrl-C
+    print('[application polling running]')
     application.run_polling()
 
     #Batch thread
     t = Thread(target=batch)
     t.setDaemon(True)
     t.start()
-    print('[application polling running]')
 
 
 
