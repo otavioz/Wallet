@@ -98,7 +98,9 @@ def main() -> None:
     application.run_polling()
 
     #Batch thread
-    Thread(target=batch).setDaemon(True).start()
+    t = Thread(target=batch)
+    t.setDaemon(True)
+    t.start()
     print('[application polling running]')
 
 
