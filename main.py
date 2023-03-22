@@ -100,7 +100,7 @@ def main() -> None:
 
     #Batch thread
     t = Thread(target=batch)
-    t.setDaemon(True)
+    t.daemon = True
     t.start()
 
 
