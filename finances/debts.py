@@ -194,15 +194,18 @@ class NuAccountDebt(Debt):
         return ''
     
     def __add_payment_charges(self):
+        """
+        If the debt is an Bill Payment using account values, create an payment to insert on credit card
+        """
         if self.title == "Pagamento da fatura":
             self.payment_charges.append(Debt(
                 title= self.title,
                 origin= "Nubank",
-                amount= self.amount,
+                amount= -self.amount,
                 category= 'pagamento',
                 timedate= self.timedate,
                 ref_month= self.ref_month,
-                details= self.details,
+                details= 'Automatic created',
                 debtor= '',
             ))
 

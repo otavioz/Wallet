@@ -48,7 +48,7 @@ async def callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if '/finances' in query.data:
         await FinancesHandler.finances(update=query,text=query.data)
     else:
-         await update.message.reply_text('Not implemented function.')
+        await update.message.reply_text('Not implemented function.')
 
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -62,12 +62,12 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 def batch():
     if os.getenv('env') == 'PROD':
-        start_hour = "05"
+        start_hour = 5
         while True:
             try:
                 now = datetime.now()
-                if now.strftime("%H") == start_hour and now.strftime("%M") == "50":  #Atualizar Planilha
-                    ttime.sleep(59)
+                ttime.sleep(59)
+                if now.hour == start_hour and now.minute == 50:  #Atualizar Planilha
                     logging.info(f'{datetime.now()} - Batch processing started.')
                     FinancesHandler.batch()
                     logging.info(f'{datetime.now()} - Batch processing ended with success.')
@@ -84,7 +84,7 @@ def main() -> None:
     """Start the bot."""
     # Create the Application and pass it your bot's token.
     defaults = Defaults(parse_mode=ParseMode.HTML, tzinfo=pytz.timezone('America/Sao_Paulo'))
-    application = Application.builder().token(os.getenv('bot_token')).defaults(defaults).build()
+    application = Application.builder().get_updates_http_version('1.1').http_version('1.1').token(os.getenv('bot_token')).defaults(defaults).build()
 
     # on different commands - answer in Telegram
     application.add_handler(CommandHandler("finances", finances))
