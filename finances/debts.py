@@ -1,5 +1,6 @@
 ﻿import copy
 from datetime import datetime
+import json
 from dateutil.relativedelta import relativedelta
 from finances.model import DebtModel
 import consts as CONST
@@ -63,7 +64,7 @@ class Debt:
         categories = DataBase.read_debts_domain('categories')
         if self.category not in categories:
             categories.update({self.category:[]})
-            DataBase.write_debts_domain('categories',categories)
+            DataBase.write_debts_domain('categories',json.dumps(categories))
             #TODO GSheets().append([cat],GS.Categories.table)
             logging.info(f'{datetime.now()} - New CATEGORY domain inserted: {self.category}')
 

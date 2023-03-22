@@ -103,7 +103,5 @@ def main() -> None:
     t.daemon = True
     t.start()
 
-
-
 if __name__ == "__main__":
     main()
