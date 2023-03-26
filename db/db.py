@@ -30,3 +30,16 @@ class DataBase:
         config.set("NUBANK",key,value)
         config.write(cnfFile)
         cnfFile.close()
+
+    def read_currency_domain(data):
+        config = CP()
+        config.read(CONS.DB_FILE_NAME)
+        return config.get("CURRENCY",data)
+
+    def write_currency_domain(key,value):
+        config = CP()
+        config.read(CONS.DB_FILE_NAME)
+        cnfFile = open(CONS.DB_FILE_NAME, "w",encoding="utf-8")
+        config.set("CURRENCY",key,value)
+        config.write(cnfFile)
+        cnfFile.close()

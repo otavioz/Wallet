@@ -37,7 +37,7 @@ class GSheets:
             "values": values
 
         }
-        service = build('sheets', 'v4', credentials=self.creds)
+        service = build('sheets', 'v4', credentials=self.creds, cache_discovery=False)
         result = service.spreadsheets().values().append(spreadsheetId=self.sheet_id,
                                                       valueInputOption="USER_ENTERED",
                                                       range=range_,body=body).execute()
@@ -54,13 +54,13 @@ class GSheets:
             "range": range_,
             "values": values
         }
-        service = build('sheets', 'v4', credentials=self.creds)
+        service = build('sheets', 'v4', credentials=self.creds, cache_discovery=False)
         return service.spreadsheets().values().update(spreadsheetId=self.sheet_id,
                                                       valueInputOption="USER_ENTERED",
                                                       range=range_,body=body).execute()
 
     def get(self,sheet_range,majorDimension='COLUMNS',value_render_option = 'UNFORMATTED_VALUE',date_time_render_option = 'FORMATTED_STRING'):
-        service = build('sheets', 'v4', credentials=self.creds)
+        service = build('sheets', 'v4', credentials=self.creds, cache_discovery=False)
         # pylint: disable=maybe-no-member
         return service.spreadsheets().values().get(spreadsheetId=self.sheet_id,
                                                    range=sheet_range,

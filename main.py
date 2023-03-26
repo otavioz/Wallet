@@ -45,7 +45,9 @@ async def callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     selected = [i[0].text for i in query.message.reply_markup.inline_keyboard if i[0].callback_data == query.data][0]
     await query.edit_message_text(text=f'✅ {selected}')
 
-    if '/finances' in query.data:
+    if '/cancel' in query.data:
+        await update.message.reply_text('✌')
+    elif '/finances' in query.data:
         await FinancesHandler.finances(update=query,text=query.data)
     else:
         await update.message.reply_text('Not implemented function.')
@@ -61,23 +63,24 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(update.message.text)
 
 def batch():
-    if os.getenv('env') == 'PROD':
-        start_hour = 5
-        while True:
-            try:
-                now = datetime.now()
-                ttime.sleep(59)
-                if now.hour == start_hour and now.minute == 50:  #Atualizar Planilha
-                    logging.info(f'{datetime.now()} - Batch processing started.')
-                    FinancesHandler.batch()
-                    logging.info(f'{datetime.now()} - Batch processing ended with success.')
-                    ttime.sleep(36000) #Sleeping for 10h
-            except errors.HttpError as e:
-                logging.error(f'{datetime.now()} - Error while calling Google Sheets API {e}')
-            except UnicodeDecodeError as e:
-                logging.error(f'{datetime.now()} - Unicode error while reading csv file: {e}')
-            except Exception as e:
-                logging.error(f'{datetime.now()} - Batch process failed: {traceback.format_exc()}')
+    start_hour = 5
+    logging.info(f'{datetime.now()} - Batch is running.')
+    print('[BATCH is running]')
+    while True:
+        try:
+            now = datetime.now()
+            ttime.sleep(59)
+            if now.hour == start_hour and now.minute == 50:  #Atualizar Planilha
+                logging.info(f'{datetime.now()} - Batch processing started.')
+                FinancesHandler.batch()
+                logging.info(f'{datetime.now()} - Batch processing ended with success.')
+                ttime.sleep(36000) #Sleeping for 10h
+        except errors.HttpError as e:
+            logging.error(f'{datetime.now()} - Error while calling Google Sheets API {e}')
+        except UnicodeDecodeError as e:
+            logging.error(f'{datetime.now()} - Unicode error while reading csv file: {e}')
+        except Exception as e:
+            logging.error(f'{datetime.now()} - Batch process failed: {traceback.format_exc()}')
 
 
 def main() -> None:
@@ -94,14 +97,14 @@ def main() -> None:
     # on non command i.e message - echo the message on Telegram
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
 
+    #Batch thread
+    if os.getenv('env') == 'PROD':
+        t = Thread(target=batch, daemon=True)
+        t.start()
+
     # Run the bot until the user presses Ctrl-C
     print('[application polling running]')
     application.run_polling()
-
-    #Batch thread
-    t = Thread(target=batch)
-    t.daemon = True
-    t.start()
 
 if __name__ == "__main__":
     main()

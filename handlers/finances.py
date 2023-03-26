@@ -20,8 +20,8 @@ class FinancesHandler:
                 keyboard = [
                                 [InlineKeyboardButton("Month Expenses", callback_data="/finances;expen")],
                                 [InlineKeyboardButton("Month Nubank Bill", callback_data="/finances;nubill")],
-                                [InlineKeyboardButton("Change Nubank close-bill date", callback_data="/finances;closedate")],
                                 [InlineKeyboardButton("Insert lastest transactions", callback_data="/finances;insertlastest")],
+                                [InlineKeyboardButton("Change Nubank close-bill date", callback_data="/finances;closedate")],
                                 [InlineKeyboardButton("Edit limit transaction amount", callback_data="/finances;limit")],
                                 [InlineKeyboardButton("Cancel", callback_data="/cancel")]
                             ]
