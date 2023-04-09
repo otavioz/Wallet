@@ -59,10 +59,11 @@ class Finances:
         bills_list = []
         transactions = Nubank().get_account_statements()
         next_page = transactions['pageInfo']['hasNextPage'] #TODO implementar auto paginação
+        last_id = None
         for transaction in transactions['edges']:
-            current_id = transaction['node']['id']
-            if current_id == base_id:
-                DataBase.write_nubank_domain('last_account_id',current_id)
+            last_id = transaction['node']['id'] if last_id is None else last_id
+            if base_id == transaction['node']['id']:
+                DataBase.write_nubank_domain('last_account_id',last_id)
                 break
             bill = NuAccountDebt(transaction['node'])
             bills_list.append(bill.to_list())
