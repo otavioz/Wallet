@@ -52,7 +52,7 @@ class FinancesHandler:
 
     def insert_expenses(closing_date=None):
         qtd = Finances().save_card_statments(closing_date)
-        qtd += Finances().save_account_statements(closing_date)
+        qtd += Finances().save_account_statements()
         return f'{qtd} records was inserted.'
     
     def get_month_expenses(ref_month):

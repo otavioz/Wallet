@@ -19,3 +19,19 @@ ESHOPS = {"US":{"USA":"US","Canada":"CA","Mexico":"MX","Brasil":"BR","Colombia":
 
 LOCALES = {"US":"USA","CA":"Canada","MX":"Mexico","BR":"Brasil","CO":"Colombia","AR":"Argentina","CL":"Chile","PE":"Peru","AT":"Austria","BE":"Belgie","CZ":"Czech Republic","DK":"Denmark","DE":"Deutschland","ES":"España","FI":"Finland","FR":"France","GR":"Greece","HU":"Hungary","IL":"Israel","IT":"Italia","NL":"Nederland","NO":"Norway","SK":"Slovakia","PL":"Poland","PT":"Portugal","RU":"Russia","ZA":"South Africa","SE":"Sweden","GB":"UK & Ireland","JP":"Japan","KR":"Korea","CH":"China Mainland","HK":"Hong Kong","AU":"Australia","NZ":"New Zealand",
 }
+
+#ALGOLIA URL TO GET GAMES US
+ALGOLIA_URL = 'https://{algoliaid}-dsn.algolia.net/1/indexes/ncom_game_en_us/query'
+#ALGOLIA API KEY to use on request header
+ALGOLIA_API_KEY = 'c4da8be7fd29f0f5bfa42920b0a99dc7'
+#ALGOLIA ID on URL
+ALGOLIA_ID = 'U3B6GR4UA3'
+#FOR TESTS
+SAMPLE_US_GAME_NSUID = 70010000027619
+SAMPLE_GAME_NAME = 'Animal Crossing'
+
+#URL LINK TO EU GAMES
+NINTENDO_EU_URL ='https://search.nintendo-europe.com/en/select'
+
+#NINTENDO PRICE API
+PRICE_API_URL = "https://api.ec.nintendo.com/v1/price"

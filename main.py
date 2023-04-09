@@ -65,7 +65,6 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 def batch():
     start_hour = 5
     logging.info(f'{datetime.now()} - Batch is running.')
-    print('[BATCH is running]')
     while True:
         try:
             now = datetime.now()
@@ -101,6 +100,7 @@ def main() -> None:
     if os.getenv('env') == 'PROD':
         t = Thread(target=batch, daemon=True)
         t.start()
+        print('[BATCH is running]')
 
     # Run the bot until the user presses Ctrl-C
     print('[application polling running]')

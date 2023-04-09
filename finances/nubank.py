@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 class Nubank:
 
-    def __init__(self,prod=False):
+    def __init__(self,prod=True):
         if os.getenv('env') == 'PROD' or prod:
             self.nu = Nu()                #Ambiente de Produção
             self.prod = True

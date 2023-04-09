@@ -51,23 +51,22 @@ class Finances:
         DataBase.write_nubank_domain('last_card_statements',datetime.strftime(datetime.now(),"%Y-%m-%dT%H:%M:%SZ"))
         return GSheets().append(bills_list,DebtModel.table)
 
-
-    def save_account_statements(self,closing_date=None):
+    def save_account_statements(self):
         """
         Get all account statments from nubank and insert following the last one inserted by date.
         """
-        base_date = DataBase.read_nubank_domain('last_account_statements') if closing_date == None else closing_date
-        base_date = datetime.strptime(base_date,"%Y-%m-%dT%H:%M:%SZ")
+        base_id = DataBase.read_nubank_domain('last_account_id')
         bills_list = []
         transactions = Nubank().get_account_statements()
         next_page = transactions['pageInfo']['hasNextPage'] #TODO implementar auto paginação
         for transaction in transactions['edges']:
-            transaction = transaction['node']
-            date = datetime.strptime(transaction['postDate'],"%Y-%m-%d") #TODO Motivo do duplicado é a falta de HORA no registro, caso seja chamado 2x no dia insere duplicado.
-            if date.date() > base_date.date():
-                bill = NuAccountDebt(transaction)
-                bills_list.append(bill.to_list())
-                bills_list.extend([b.to_list() for b in bill.get_payment_charges()])
+            current_id = transaction['node']['id']
+            if current_id == base_id:
+                DataBase.write_nubank_domain('last_account_id',current_id)
+                break
+            bill = NuAccountDebt(transaction['node'])
+            bills_list.append(bill.to_list())
+            bills_list.extend([b.to_list() for b in bill.get_payment_charges()])
         DataBase.write_nubank_domain('last_account_statements',datetime.strftime(datetime.now(),"%Y-%m-%dT%H:%M:%SZ"))
         return GSheets().append(bills_list,DebtModel.table)
 
