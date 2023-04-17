@@ -47,7 +47,7 @@ class FinancesHandler:
             else:
                 raise ValueError("Error processing your request.")
         except Exception as e :
-            logging.error(f'{datetime.now()} - Error processing the request: {e}  Traceback: {traceback.format_exc()}')
+            logging.error(f' Error processing the request: {e}  Traceback: {traceback.format_exc()}')
             await update.message.reply_text("Something wrong happened!!")
 
     def insert_expenses(closing_date=None):
@@ -86,4 +86,4 @@ class FinancesHandler:
 
 
     def batch():
-        logging.info(f'{datetime.now()} - [BATCH] {FinancesHandler.insert_expenses()}')
+        logging.info(f' [BATCH] {FinancesHandler.insert_expenses()}')

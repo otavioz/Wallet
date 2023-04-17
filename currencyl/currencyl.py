@@ -20,7 +20,7 @@ class Currencyl():
             r = requests.get(CONST.URL_CURRENCYL,params=params)
             if r.status_code not in range(200, 299):
                 #print(f'Endpoint Response Code:{str(r.status_code)} {r.text}\n\nParams: {params}')
-                logging.warning(f'{datetime.now()} - Erro na chamada API Currency Layer: {str(r.status_code)} {r.text}')
+                logging.warning(f' Erro na chamada API Currency Layer: {str(r.status_code)} {r.text}')
                 return self.__get_currencies()
             self.__save_currencies(r.text)
             return r.text

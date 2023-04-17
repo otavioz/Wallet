@@ -64,22 +64,22 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 def batch():
     start_hour = 5
-    logging.info(f'{datetime.now()} - Batch is running.')
+    logging.info(f' Batch is running.')
     while True:
         try:
             now = datetime.now()
             ttime.sleep(59)
             if now.hour == start_hour and now.minute == 50:  #Atualizar Planilha
-                logging.info(f'{datetime.now()} - Batch processing started.')
+                logging.info(f' Batch processing started.')
                 FinancesHandler.batch()
-                logging.info(f'{datetime.now()} - Batch processing ended with success.')
+                logging.info(f' Batch processing ended with success.')
                 ttime.sleep(36000) #Sleeping for 10h
         except errors.HttpError as e:
-            logging.error(f'{datetime.now()} - Error while calling Google Sheets API {e}')
+            logging.error(f' Error while calling Google Sheets API {e}')
         except UnicodeDecodeError as e:
-            logging.error(f'{datetime.now()} - Unicode error while reading csv file: {e}')
+            logging.error(f' Unicode error while reading csv file: {e}')
         except Exception as e:
-            logging.error(f'{datetime.now()} - Batch process failed: {traceback.format_exc()}')
+            logging.error(f' Batch process failed: {traceback.format_exc()}')
 
 
 def main() -> None:

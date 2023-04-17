@@ -53,7 +53,7 @@ class Finances:
 
     def save_account_statements(self):
         """
-        Get all account statments from nubank and insert following the last one inserted by date.
+        Get all account statments from nubank and insert following the last one inserted by id.
         """
         base_id = DataBase.read_nubank_domain('last_account_id')
         bills_list = []

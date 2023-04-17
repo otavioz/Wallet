@@ -42,7 +42,7 @@ class GSheets:
                                                       valueInputOption="USER_ENTERED",
                                                       range=range_,body=body).execute()
         if not 'updates' in result:
-            logging.error(f'{datetime.now()} - Error while calling Google Sheets API: {result} ')
+            logging.error(f' Error while calling Google Sheets API: {result} ')
             raise Exception('Error while calling Google Sheets API')
         else:
             if 'updatedRows' in result['updates']:

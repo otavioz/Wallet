@@ -59,14 +59,14 @@ class Debt:
             origins.append(self.origin)
             DataBase.write_debts_domain('origins',origins)
             #TODO GSheets().append([cat],GS.Categories.table)
-            logging.info(f'{datetime.now()} - New ORIGIN domain inserted: {self.origin}')
+            logging.info(f' New ORIGIN domain inserted: {self.origin}')
 
         categories = DataBase.read_debts_domain('categories')
         if self.category not in categories:
             categories.update({self.category:[]})
             DataBase.write_debts_domain('categories',json.dumps(categories))
             #TODO GSheets().append([cat],GS.Categories.table)
-            logging.info(f'{datetime.now()} - New CATEGORY domain inserted: {self.category}')
+            logging.info(f' New CATEGORY domain inserted: {self.category}')
 
     def get_payment_charges(self):
         return self.payment_charges
@@ -151,13 +151,22 @@ class NuAccountDebt(Debt):
                 title= jsn['title'],
                 origin= "Nuconta",
                 amount= self.__getamount(jsn),
-                category= 'movimentação',
+                category= self.__get_category(jsn),
                 timedate= datetime.strptime(jsn['postDate'],"%Y-%m-%d"),
                 ref_month= self.__get_refmonth(jsn['postDate']),
                 details=self.__get_details(jsn),
                 debtor=self.__get_debtor(jsn['detail']))
         self.__add_payment_charges()
 
+    def __get_category(self,jsn):
+        if jsn['footer'] in ['Pix']:
+            return 'pix'
+        elif jsn['detail'] in ['Nu Reserva Imediata']:
+            return 'reserva'
+        elif jsn['title'] in ['Pagamento da fatura']:
+            return 'pagamento'
+        return 'movimentação'
+    
     def __get_refmonth(self,datetime_):
         closing_day = Debt.get_closing_day()
         ref_month = datetime.strptime(datetime_,"%Y-%m-%d")
