@@ -14,7 +14,7 @@ class DataBase:
         config = CP()
         config.read(CONS.DB_FILE_NAME)
         cnfFile = open(CONS.DB_FILE_NAME, "w",encoding="utf-8")
-        config.set("DEBTS",key,value)
+        config.set("DEBTS",key,str(value))
         config.write(cnfFile)
         cnfFile.close()
     
@@ -27,7 +27,7 @@ class DataBase:
         config = CP()
         config.read(CONS.DB_FILE_NAME)
         cnfFile = open(CONS.DB_FILE_NAME, "w",encoding="utf-8")
-        config.set("NUBANK",key,value)
+        config.set("NUBANK",key,str(value))
         config.write(cnfFile)
         cnfFile.close()
 
@@ -40,6 +40,6 @@ class DataBase:
         config = CP()
         config.read(CONS.DB_FILE_NAME)
         cnfFile = open(CONS.DB_FILE_NAME, "w",encoding="utf-8")
-        config.set("CURRENCY",key,value)
+        config.set("CURRENCY",key,str(value))
         config.write(cnfFile)
         cnfFile.close()
