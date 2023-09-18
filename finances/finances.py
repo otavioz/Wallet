@@ -1,11 +1,13 @@
 ﻿from datetime import datetime
+import logging
 from google.gsheets import GSheets
 import consts as CONS
 from finances.nubank import Nubank
-from finances.debts import Debt,DriveDebt,NuAccountDebt,NubankDebt
+from finances.debts import Debt,DriveDebt,NuAccountDebt,NubankDebt,CSVAccountDebt
 from finances.model import MonthlyLimitModel,DebtModel
 from db.db import DataBase
-
+import csv
+import os
 
 class Finances:
 
@@ -48,9 +50,13 @@ class Finances:
                 bill = NubankDebt(transaction)
                 bills_list.append(bill.to_list())
                 bills_list.extend([b.to_list() for b in bill.get_payment_charges()])
-        DataBase.write_nubank_domain('last_card_statements',datetime.strftime(datetime.now(),"%Y-%m-%dT%H:%M:%SZ"))
-        return GSheets().append(bills_list,DebtModel.table)
-
+        result = GSheets().append(bills_list,DebtModel.table)
+        if result >= 0:
+            DataBase.write_nubank_domain('last_card_statements',datetime.strftime(datetime.now(),"%Y-%m-%dT%H:%M:%SZ"))
+        else:
+            logging.error(f'Error while calling Google Sheets API.')
+        return result
+        
     def save_account_statements(self):
         """
         Get all account statments from nubank and insert following the last one inserted by id.
@@ -64,13 +70,60 @@ class Finances:
             last_id = transaction['node']['id'] if last_id is None else last_id
             if base_id == transaction['node']['id']:
                 DataBase.write_nubank_domain('last_account_id',last_id)
+                base_id = last_id
                 break
             bill = NuAccountDebt(transaction['node'])
             bills_list.append(bill.to_list())
             bills_list.extend([b.to_list() for b in bill.get_payment_charges()])
-        DataBase.write_nubank_domain('last_account_statements',datetime.strftime(datetime.now(),"%Y-%m-%dT%H:%M:%SZ"))
-        return GSheets().append(bills_list,DebtModel.table)
+        if base_id != last_id:
+            logging.warning(f'Last id not found, maybe pagination was required.')
+        result = GSheets().append(bills_list,DebtModel.table)
+        if result >= 0:
+            DataBase.write_nubank_domain('last_account_statements',datetime.strftime(datetime.now(),"%Y-%m-%dT%H:%M:%SZ"))
+        else:
+            logging.error(f'Error while calling Google Sheets API.') 
+        return result
 
+    def save_csv_account_statements(self,csv_filename=CONS.CSVNUAFILE):
+        """
+        Insert statements from CSV file formarted as:
+
+        Data,Valor,Identificador,Descrição
+        d/m/Y, -000.00, <str>, <str>
+
+        Como o CSV vem em ordem cronológica, as mais antigas primeiro, o código deve pular todas as linhas até encontrar o mesmo ID
+        salvo, só ai inserir as restantes.
+        """
+        base_id = DataBase.read_nubank_domain('last_account_id')
+        bills_list = []
+        last_id = 0
+        try:
+            file = open(csv_filename,encoding='utf-8') #TODO: FileNotFoundError: [Errno 2] No such file or directory: 'NU_35863474_01AGO2023_31AGO2023.csv'
+        except FileNotFoundError:
+            raise Exception(f'No such file {csv_filename}')
+        csv_reader = csv.reader(file, delimiter=',')
+        next(csv_reader) #Pular Header          
+        for line in csv_reader:
+            #if base_id == line[2]:
+            #    next_ = True
+            #    continue
+            if base_id == line[2]:
+                bills_list = [] #Registros já inseridos. Não incluir
+            last_id = line[2]
+            bill = CSVAccountDebt(line[3],line[1],line[0],line[2])
+            bills_list.append(bill.to_list())
+            bills_list.extend([b.to_list() for b in bill.get_payment_charges()])
+        DataBase.write_nubank_domain('last_account_id',last_id)
+        file.close()
+        os.remove(csv_filename)
+        if len(bills_list) < 1:
+            logging.warning(f'Last id not found, maybe older files are required.')
+        result = GSheets().append(bills_list,DebtModel.table)
+        if result >= 0:
+            DataBase.write_nubank_domain('last_account_statements',datetime.strftime(datetime.now(),"%Y-%m-%dT%H:%M:%SZ"))
+        else:
+            logging.error(f'Error while calling Google Sheets API.') 
+        return result
 
         
 

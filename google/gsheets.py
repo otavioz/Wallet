@@ -43,7 +43,8 @@ class GSheets:
                                                       range=range_,body=body).execute()
         if not 'updates' in result:
             logging.error(f' Error while calling Google Sheets API: {result} ')
-            raise Exception('Error while calling Google Sheets API')
+            #raise Exception('Error while calling Google Sheets API')
+            return -1
         else:
             if 'updatedRows' in result['updates']:
                 return result['updates']['updatedRows']

@@ -31,7 +31,7 @@ class CategoryModel:
     value_2 = 3
 
 class DebtModel:
-    table = f'{debt}!A14:I900'
+    table = f'{debt}!A14:K900'
     title= 0
     origin= 1
     amount= 2
@@ -41,3 +41,5 @@ class DebtModel:
     details= 6
     debtor= 7
     created_date= 8
+    external_id = 9
+    tags = 10

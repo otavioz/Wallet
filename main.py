@@ -12,6 +12,9 @@ import traceback
 from googleapiclient import errors
 from threading import Thread
 from handlers.finances import FinancesHandler
+from pynubank import exception as NuException
+import consts as CONS
+
 
 # Enable logging
 logging.basicConfig(
@@ -44,11 +47,11 @@ async def callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     #TODO não funciona com botões na mesma linha
     selected = [i[0].text for i in query.message.reply_markup.inline_keyboard if i[0].callback_data == query.data][0]
     await query.edit_message_text(text=f'✅ {selected}')
-
+    
     if '/cancel' in query.data:
         await update.message.reply_text('✌')
     elif '/finances' in query.data:
-        await FinancesHandler.finances(update=query,text=query.data)
+        await FinancesHandler.finances(update=query,callback=True)
     else:
         await update.message.reply_text('Not implemented function.')
 
@@ -58,9 +61,19 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     await update.message.reply_text("Help!")
 
 
+async def downloader(update, context):
+    if update.message.document.mime_type != 'text/csv':
+       await update.message.reply_text('The file must be an CSV.')
+    else:
+        file = await context.bot.get_file(update.message.document)
+        await file.download_to_drive(CONS.CSVNUAFILE)
+        await FinancesHandler.finances(update=update,file=True)
+        #await update.message.reply_text('File donwloaded')
+    
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Echo the user message."""
-    await update.message.reply_text(update.message.text)
+    #await update.message.reply_text(update.message.text)
+    await update.message.reply_text('Use /help to know what I can do!')
 
 def batch():
     start_hour = 5
@@ -78,9 +91,11 @@ def batch():
             logging.error(f' Error while calling Google Sheets API {e}')
         except UnicodeDecodeError as e:
             logging.error(f' Unicode error while reading csv file: {e}')
+        except NuException.NuRequestException as e:
+            logging.error(f' Failed while calling PyNubank: {e}')
         except Exception as e:
             logging.error(f' Batch process failed: {traceback.format_exc()}')
-
+    #TODO: Métodos de catch de erros, criar próprias exceptions nas extremidaddes?
 
 def main() -> None:
     """Start the bot."""
@@ -93,8 +108,12 @@ def main() -> None:
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CallbackQueryHandler(callback))
 
+    #File handler
+    application.add_handler(MessageHandler(filters.Document.ALL, downloader))
+
     # on non command i.e message - echo the message on Telegram
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
+
 
     #Batch thread
     if os.getenv('env') == 'PROD':

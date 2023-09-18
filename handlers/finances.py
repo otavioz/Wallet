@@ -8,13 +8,20 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 import logging
 import traceback
 from finances.finances import Finances
+import consts as CONS
 
 
 class FinancesHandler:
 
-    async def finances(update,text=None):
+    async def finances(update,callback=False,file=False):
         try:
-            text = update.message.text.split(';') if text == None else text.split(';')
+            if callback:
+                text = update.data.split(';')
+            elif file:
+                text = ['/finances','csvnuc',CONS.CSVNUAFILE]
+            else:
+                text = update.message.text.split(';')
+
             step = len(text)
             if step == 1:
                 keyboard = [
@@ -23,6 +30,7 @@ class FinancesHandler:
                                 [InlineKeyboardButton("Insert lastest transactions", callback_data="/finances;insertlastest")],
                                 [InlineKeyboardButton("Change Nubank close-bill date", callback_data="/finances;closedate")],
                                 [InlineKeyboardButton("Edit limit transaction amount", callback_data="/finances;limit")],
+                                [InlineKeyboardButton("Insert account transactions using CSV", callback_data="/finances;csvnuc")],
                                 [InlineKeyboardButton("Cancel", callback_data="/cancel")]
                             ]
                     
@@ -31,24 +39,28 @@ class FinancesHandler:
 
             elif step == 2:
                 if text[1] == 'expen':
-                    await update.message.reply_text(
-                        FinancesHandler
-                        .get_month_expenses(ref_month=Finances().get_current_month()))
+                    await update.message.reply_text(FinancesHandler.get_month_expenses(ref_month=Finances().get_current_month()))
                 elif text[1] == 'nubill':
                     await update.message.reply_text("Help!")
                 elif text[1] == 'closedate':
                     await update.message.reply_text("Help!")
                 elif text[1] == 'insertlastest':
                    await update.message.reply_text(FinancesHandler.insert_expenses())
+                elif text[1] == 'csvnuc':
+                   await update.message.reply_text("Just send a csv file containing the statments. Max filesize is 20Mb.")
                 elif text[1] == 'limit':
                     await update.message.reply_text("Help!")
-            #elif step == 3:
-            #    pass
+            elif step == 3:
+                if text[1] == 'csvnuc':
+                   await update.message.reply_text(FinancesHandler.insert_expenses_from_csv())
             else:
                 raise ValueError("Error processing your request.")
         except Exception as e :
             logging.error(f' Error processing the request: {e}  Traceback: {traceback.format_exc()}')
             await update.message.reply_text("Something wrong happened!!")
+
+    def insert_expenses_from_csv():
+        return '{} records was inserted.'.format(Finances().save_csv_account_statements())
 
     def insert_expenses(closing_date=None):
         qtd = Finances().save_card_statments(closing_date)

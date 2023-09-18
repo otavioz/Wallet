@@ -6,6 +6,7 @@ MONTHS = ['All','Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','A
 
 #DB
 DB_FILE_NAME = "db/db.cfg"
+CSVNUAFILE = 'files/nuaccount.csv'
 
 #API KEY CURRENCY LAYER FREE PLAN
 URL_CURRENCYL = "http://api.currencylayer.com/live"

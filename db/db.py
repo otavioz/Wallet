@@ -43,3 +43,4 @@ class DataBase:
         config.set("CURRENCY",key,str(value))
         config.write(cnfFile)
         cnfFile.close()
+    

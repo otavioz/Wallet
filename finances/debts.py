@@ -14,6 +14,23 @@ DICTIONARY = {
         'Cartão Virtual': ['card_not_present'],
         '':['None']}
 
+PAYMENT_EVENT_TYPES = (
+    'TransferOutEvent',
+    'TransferInEvent',
+    'TransferOutReversalEvent',
+    'BarcodePaymentEvent',
+    'DebitPurchaseEvent',
+    'DebitPurchaseReversalEvent',
+    'BillPaymentEvent',
+    'DebitWithdrawalFeeEvent',
+    'DebitWithdrawalEvent',
+    'PixTransferOutEvent',
+    'PixTransferInEvent',
+    'PixTransferOutReversalEvent',
+    'PixTransferFailedEvent',
+    'PixTransferScheduledEvent',
+)
+
 class Debt:
     def __init__(self,**kwargs):
         self.payment_charges = []
@@ -26,6 +43,9 @@ class Debt:
         self.details = kwargs.get('details')
         self.debtor = kwargs.get('debtor') if 'debtor' in kwargs else ''
         self.created_date = kwargs.get('created_date') if 'created_date' in kwargs else datetime.now()
+        self.external_id = kwargs.get('external_id') if 'external_id' in kwargs else ''
+        #TODO: Incluir novos campos
+        #TODO: sistema de tags
         self.__update_values()
     
     def __str__(self):
@@ -39,7 +59,8 @@ class Debt:
             Details: {}
             Debtor: {}
             Created Date: {}
-            """.format(self.title,self.origin,self.amount,self.category,self.timedate,self.ref_month,self.details,self.debtor,self.created_date)
+            ID: {}
+            """.format(self.title,self.origin,self.amount,self.category,self.timedate,self.ref_month,self.details,self.debtor,self.created_date,self.external_id)
 
     def to_list(self):
         return [
@@ -52,6 +73,7 @@ class Debt:
             self.details,
             self.debtor,
             self.created_date.strftime("%d/%m/%Y %H:%M:%S"),
+            self.external_id
         ]
     def __update_values(self):
         origins = DataBase.read_debts_domain('origins')
@@ -73,9 +95,22 @@ class Debt:
 
     def __add_payment_charges(self):
         """
-        Overwrited by child classes.
+        If the debt is an Bill Payment using account values, create an payment to insert on credit card
         """
-        pass
+        if self.title == "Pagamento da fatura":
+            self.payment_charges.append(Debt(
+                title= self.title,
+                origin= "Nubank",
+                amount= -self.amount,
+                category= 'pagamento',
+                timedate= self.timedate,
+                ref_month= self.ref_month,
+                details= 'Automatic created',
+                debtor= '',
+            ))
+
+    def __get_title(self,text):
+        return text
 
     @staticmethod
     def get_closing_day():
@@ -243,3 +278,80 @@ class DriveDebt(Debt):
                 break
             month_num += 1
         return datetime.now().replace(month=month_num)
+
+class CSVAccountDebt(Debt):
+    def __init__(self,description,amount,create_date,id):
+
+        title = self.__get_title(description)
+        origin = 'Nuconta'
+        amount = amount
+        category = self.__get_category(description)
+        timedate = datetime.strptime(create_date,"%d/%m/%Y")
+        ref_month = self.__get_refmonth(create_date)
+        details = self.__get_details(description)
+        debtor = self.__get_debtor(description)
+        created_date = datetime.now()
+        external_id = id
+
+        super().__init__(
+                title = title,
+                origin = origin,
+                amount = float(amount),
+                category = category,
+                timedate = timedate,
+                ref_month = ref_month,
+                details = details,
+                debtor = debtor,
+                created_date = created_date,
+                external_id = external_id)
+        self.__add_payment_charges()
+
+    def __add_payment_charges(self):
+        """
+        If the debt is an Bill Payment using account values, create an payment to insert on credit card
+        """
+        if self.title == "Pagamento da fatura":
+            self.payment_charges.append(Debt(
+                title= self.title,
+                origin= "Nubank",
+                amount= -self.amount,
+                category= 'pagamento',
+                timedate= self.timedate,
+                ref_month= self.ref_month,
+                details= 'Automatic created',
+                debtor= '',
+            ))
+            
+    def __get_title(self,text):
+        if '-' in text:
+            return text.split('-')[0]
+        return text
+
+    def __get_category(self,text):
+        if 'pix' in text.lower():
+            return 'pix'
+        elif 'nu reserva imediata' in text.lower():
+            return 'reserva'
+        elif 'pagamento da fatura' in text.lower():
+            return 'pagamento'
+        return 'movimentação'
+
+    def __get_details(self,text):
+        det = 'CSV Automated'
+        if '-' in text:
+            return f'{det} | {text.split("-")[1]}'
+        return det
+    
+    def __get_refmonth(self,datetime_):
+        closing_day = Debt.get_closing_day()
+        ref_month = datetime.strptime(datetime_,"%d/%m/%Y")
+        if ref_month.day >= closing_day:
+            ref_month = ref_month + relativedelta(months=1)
+        return ref_month
+    
+    def __get_debtor(self,input):
+        list_ = self.debtor_list()
+        for name in list_:
+            if name in input:
+                return name
+        return ''
