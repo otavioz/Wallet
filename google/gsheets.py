@@ -9,6 +9,8 @@ from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 
+from handlers.execeptions import GoogleAPIError
+
 class GSheets:
     creds = None
     # The file token.pickle stores the user's access and refresh tokens, and is
@@ -42,12 +44,9 @@ class GSheets:
                                                       valueInputOption="USER_ENTERED",
                                                       range=range_,body=body).execute()
         if not 'updates' in result:
-            logging.error(f' Error while calling Google Sheets API: {result} ')
-            #raise Exception('Error while calling Google Sheets API')
-            return -1
-        else:
-            if 'updatedRows' in result['updates']:
-                return result['updates']['updatedRows']
+            raise GoogleAPIError('Error while calling Google Sheets API')
+        if 'updatedRows' in result['updates']:
+            return result['updates']['updatedRows']
         return 0
     
     def insert(self,values,range_):

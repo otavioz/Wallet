@@ -242,7 +242,7 @@ class NuAccountDebt(Debt):
         """
         If the debt is an Bill Payment using account values, create an payment to insert on credit card
         """
-        if self.title == "Pagamento da fatura":
+        if self.title == "Pagamento da fatura" or self.title == "Pagamento de fatura":
             self.payment_charges.append(Debt(
                 title= self.title,
                 origin= "Nubank",

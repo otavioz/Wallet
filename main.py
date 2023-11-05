@@ -1,4 +1,6 @@
-﻿import logging
+﻿import html
+import json
+import logging
 from telegram import ForceReply, Update
 import pytz
 import datetime as dtm
@@ -62,7 +64,7 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 
 async def downloader(update, context):
-    if update.message.document.mime_type != 'text/csv':
+    if update.message.document.mime_type != 'text/csv' and update.message.document.mime_type != 'text/comma-separated-values':
        await update.message.reply_text('The file must be an CSV.')
     else:
         file = await context.bot.get_file(update.message.document)
@@ -74,6 +76,31 @@ async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Echo the user message."""
     #await update.message.reply_text(update.message.text)
     await update.message.reply_text('Use /help to know what I can do!')
+
+async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Log the error and send a telegram message to notify the developer."""
+    # Log the error before we do anything else, so we can see it even if something breaks.
+    logging.error("Exception while handling an update:", exc_info=context.error)
+
+    # traceback.format_exception returns the usual python message about an exception, but as a
+    # list of strings rather than a single string, so we have to join them together.
+    tb_list = traceback.format_exception(None, context.error, context.error.__traceback__)
+    #tb_string = "".join(tb_list)
+    # Build the message with some markup and additional information about what happened.
+    # You might need to add some logic to deal with messages longer than the 4096 character limit.
+    #update_str = update.to_dict() if isinstance(update, Update) else str(update)
+    #message = (
+    #    "An exception was raised while handling an update\n"
+    #    f"<pre>update = {html.escape(json.dumps(update_str, indent=2, ensure_ascii=False))}"
+    #    "</pre>\n\n"
+    #    f"<pre>context.chat_data = {html.escape(str(context.chat_data))}</pre>\n\n"
+    #    f"<pre>context.user_data = {html.escape(str(context.user_data))}</pre>\n\n"
+    #    f"<pre>{html.escape(tb_string)}</pre>"
+    #)
+    message = (f"Warning: \n{html.escape(tb_list[-1]).split(':')[-1]}")
+    # Finally, send the message
+    await context.bot.send_message(chat_id=os.getenv('mychat_id'), text=message, parse_mode=ParseMode.HTML
+    )
 
 def batch():
     start_hour = 5
@@ -114,6 +141,8 @@ def main() -> None:
     # on non command i.e message - echo the message on Telegram
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
 
+    #Error handler
+    application.add_error_handler(error_handler)
 
     #Batch thread
     if os.getenv('env') == 'PROD':

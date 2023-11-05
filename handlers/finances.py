@@ -1,12 +1,7 @@
-﻿import re
-from datetime import timedelta, datetime
-import os
-from pathlib import Path
-import time as ttime
+﻿from datetime import  datetime
 from finances.debts import Debt
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 import logging
-import traceback
 from finances.finances import Finances
 import consts as CONS
 
@@ -14,50 +9,47 @@ import consts as CONS
 class FinancesHandler:
 
     async def finances(update,callback=False,file=False):
-        try:
-            if callback:
-                text = update.data.split(';')
-            elif file:
-                text = ['/finances','csvnuc',CONS.CSVNUAFILE]
-            else:
-                text = update.message.text.split(';')
+        if callback:
+            text = update.data.split(';')
+        elif file:
+            text = ['/finances','csvnuc',CONS.CSVNUAFILE]
+        else:
+            text = update.message.text.split(';')
 
-            step = len(text)
-            if step == 1:
-                keyboard = [
-                                [InlineKeyboardButton("Month Expenses", callback_data="/finances;expen")],
-                                [InlineKeyboardButton("Month Nubank Bill", callback_data="/finances;nubill")],
-                                [InlineKeyboardButton("Insert lastest transactions", callback_data="/finances;insertlastest")],
-                                [InlineKeyboardButton("Change Nubank close-bill date", callback_data="/finances;closedate")],
-                                [InlineKeyboardButton("Edit limit transaction amount", callback_data="/finances;limit")],
-                                [InlineKeyboardButton("Insert account transactions using CSV", callback_data="/finances;csvnuc")],
-                                [InlineKeyboardButton("Cancel", callback_data="/cancel")]
-                            ]
-                    
-                reply_markup = InlineKeyboardMarkup(keyboard)
-                await update.message.reply_text("Please choose:", reply_markup=reply_markup)
+        step = len(text)
+        if step == 1:
+            keyboard = [
+                            [InlineKeyboardButton("Month Expenses", callback_data="/finances;expen")],
+                            [InlineKeyboardButton("Month Nubank Bill", callback_data="/finances;nubill")],
+                            [InlineKeyboardButton("Insert lastest transactions", callback_data="/finances;insertlastest")],
+                            [InlineKeyboardButton("Change Nubank close-bill date", callback_data="/finances;closedate")],
+                            [InlineKeyboardButton("Edit limit transaction amount", callback_data="/finances;limit")],
+                            [InlineKeyboardButton("Insert account transactions using CSV", callback_data="/finances;csvnuc")],
+                            [InlineKeyboardButton("Cancel", callback_data="/cancel")]
+                        ]
+                
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            await update.message.reply_text("Please choose:", reply_markup=reply_markup)
 
-            elif step == 2:
-                if text[1] == 'expen':
-                    await update.message.reply_text(FinancesHandler.get_month_expenses(ref_month=Finances().get_current_month()))
-                elif text[1] == 'nubill':
-                    await update.message.reply_text("Help!")
-                elif text[1] == 'closedate':
-                    await update.message.reply_text("Help!")
-                elif text[1] == 'insertlastest':
-                   await update.message.reply_text(FinancesHandler.insert_expenses())
-                elif text[1] == 'csvnuc':
-                   await update.message.reply_text("Just send a csv file containing the statments. Max filesize is 20Mb.")
-                elif text[1] == 'limit':
-                    await update.message.reply_text("Help!")
-            elif step == 3:
-                if text[1] == 'csvnuc':
-                   await update.message.reply_text(FinancesHandler.insert_expenses_from_csv())
-            else:
-                raise ValueError("Error processing your request.")
-        except Exception as e :
-            logging.error(f' Error processing the request: {e}  Traceback: {traceback.format_exc()}')
-            await update.message.reply_text("Something wrong happened!!")
+        elif step == 2:
+            if text[1] == 'expen':
+                await update.message.reply_text(FinancesHandler.get_month_expenses(ref_month=Finances().get_current_month()))
+            elif text[1] == 'nubill':
+                await update.message.reply_text("Help!")
+            elif text[1] == 'closedate':
+                await update.message.reply_text("Help!")
+            elif text[1] == 'insertlastest':
+                await update.message.reply_text(FinancesHandler.insert_expenses())
+            elif text[1] == 'csvnuc':
+                await update.message.reply_text("Just send a csv file containing the statments. Max filesize is 20Mb.")
+            elif text[1] == 'limit':
+                await update.message.reply_text("Help!")
+        elif step == 3:
+            if text[1] == 'csvnuc':
+                await update.message.reply_text('All records from the last one will be inserted, if the last record inserted is not in the file, they will all be inserted.')
+                await update.message.reply_text(FinancesHandler.insert_expenses_from_csv())
+        else:
+            await update.message.reply_text("Sorry I dont understand what you said.")
 
     def insert_expenses_from_csv():
         return '{} records was inserted.'.format(Finances().save_csv_account_statements())

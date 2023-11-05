@@ -22,9 +22,11 @@ LOCALES = {"US":"USA","CA":"Canada","MX":"Mexico","BR":"Brasil","CO":"Colombia",
 }
 
 #ALGOLIA URL TO GET GAMES US
-ALGOLIA_URL = 'https://{algoliaid}-dsn.algolia.net/1/indexes/ncom_game_en_us/query'
+ALGOLIA_URL_DEPRECATED = 'https://{algoliaid}-dsn.algolia.net/1/indexes/ncom_game_en_us/query'
+ALGOLIA_URL = 'https://{algoliaid}-dsn.algolia.net/1/indexes/*/queries'
 #ALGOLIA API KEY to use on request header
-ALGOLIA_API_KEY = 'c4da8be7fd29f0f5bfa42920b0a99dc7'
+ALGOLIA_API_KEY_DEPRECATED = 'c4da8be7fd29f0f5bfa42920b0a99dc7'
+ALGOLIA_API_KEY = 'a29c6927638bfd8cee23993e51e721c9'
 #ALGOLIA ID on URL
 ALGOLIA_ID = 'U3B6GR4UA3'
 #FOR TESTS
@@ -32,7 +34,8 @@ SAMPLE_US_GAME_NSUID = 70010000027619
 SAMPLE_GAME_NAME = 'Animal Crossing'
 
 #URL LINK TO EU GAMES
-NINTENDO_EU_URL ='https://search.nintendo-europe.com/en/select'
+NINTENDO_EU_URL = 'https://search.nintendo-europe.com/en/select'
+NINTENDO_JP_URL = "https://www.nintendo.co.jp/data/software/xml/switch.xml"
 
 #NINTENDO PRICE API
 PRICE_API_URL = "https://api.ec.nintendo.com/v1/price"

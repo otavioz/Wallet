@@ -5,6 +5,7 @@
 test.py
 token.pickle
 *.log
+*.txt
 Pipfile.lock
 *.cfg
 *.pyc
