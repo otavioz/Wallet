@@ -20,7 +20,7 @@ import consts as CONS
 
 # Enable logging
 logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO,filename=f'log.log'
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.WARNING,filename=f'log.log'
 )
 logger = logging.getLogger(__name__)
 
