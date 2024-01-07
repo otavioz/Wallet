@@ -6,7 +6,7 @@ import os
 from dotenv import load_dotenv
 
 base = 'Geral'
-debt = '2023' if os.getenv('env') == 'PROD' else 'Teste'
+debt = '2024' if os.getenv('env') == 'PROD' else 'Teste'
 
 class ArrearModel:
     table = f'{base}!B5:F35'
