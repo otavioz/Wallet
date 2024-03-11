@@ -52,7 +52,7 @@ async def callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     
     if '/cancel' in query.data:
         await update.message.reply_text('✌')
-    elif '/finances' in query.data:
+    elif '/f' in query.data:
         await FinancesHandler.finances(update=query,callback=True)
     else:
         await update.message.reply_text('Not implemented function.')

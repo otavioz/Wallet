@@ -12,19 +12,19 @@ class FinancesHandler:
         if callback:
             text = update.data.split(';')
         elif file:
-            text = ['/finances','csvnuc',CONS.CSVNUAFILE]
+            text = ['/f','csvnuc',CONS.CSVNUAFILE]
         else:
             text = update.message.text.split(';')
 
         step = len(text)
         if step == 1:
             keyboard = [
-                            [InlineKeyboardButton("Month Expenses", callback_data="/finances;expen")],
-                            [InlineKeyboardButton("Month Nubank Bill", callback_data="/finances;nubill")],
-                            [InlineKeyboardButton("Insert lastest transactions", callback_data="/finances;insertlastest")],
-                            [InlineKeyboardButton("Change Nubank close-bill date", callback_data="/finances;closedate")],
-                            [InlineKeyboardButton("Edit limit transaction amount", callback_data="/finances;limit")],
-                            [InlineKeyboardButton("Insert account transactions using CSV", callback_data="/finances;csvnuc")],
+                            [InlineKeyboardButton("Month Expenses", callback_data="/f;expen")],
+                            [InlineKeyboardButton("Month Nubank Bill", callback_data="/f;nubill")],
+                            [InlineKeyboardButton("Insert lastest transactions", callback_data="/f;insertlastest")],
+                            [InlineKeyboardButton("Change Nubank close-bill date", callback_data="/f;closedate")],
+                            [InlineKeyboardButton("Edit limit transaction amount", callback_data="/f;limit")],
+                            [InlineKeyboardButton("Insert account transactions using CSV", callback_data="/f;csvnuc")],
                             [InlineKeyboardButton("Cancel", callback_data="/cancel")]
                         ]
                 
@@ -52,12 +52,36 @@ class FinancesHandler:
             await update.message.reply_text("Sorry I dont understand what you said.")
 
     def insert_expenses_from_csv():
-        return '{} records was inserted.'.format(Finances().save_csv_account_statements())
-
+        messages = ''
+        try:
+            result = Finances().save_csv_account_statements()
+        except FileNotFoundError:
+            result = 0
+            messages += '\n No such file.'
+            logging.error(' [insert_expenses_from_csv] {}'.format(e))
+        except Exception as e:
+            result = 0
+            messages += '\n Error on inserting files from CSV.'
+            logging.error(' [insert_expenses_from_csv] {}'.format(e))
+        return '{} records was inserted.{}'.format(result,messages)
+    
     def insert_expenses(closing_date=None):
-        qtd = Finances().save_card_statments(closing_date)
-        qtd += Finances().save_account_statements()
-        return f'{qtd} records was inserted.'
+        messages = ''
+        try:
+            cards = Finances().save_card_statement(closing_date)
+        except Exception as e:
+            cards = 0
+            messages += '\n Error on saving card statements.'
+            logging.error(' [insert_expenses - save_card_statement] {}'.format(e))
+
+        try:
+            accou = Finances().save_card_statement(closing_date)
+        except Exception as e:
+            accou = 0
+            messages += '\n Error on saving account statements.'
+            logging.error(' [insert_expenses - save_account_statements] {}'.format(e))
+
+        return '{} records was inserted.{}'.format(cards+accou,messages)
     
     def get_month_expenses(ref_month):
         origin_list = Debt.origin_list()

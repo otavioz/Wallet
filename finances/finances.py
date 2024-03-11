@@ -8,6 +8,7 @@ from finances.model import MonthlyLimitModel,DebtModel
 from db.db import DataBase
 import csv
 import os
+import dateutil.parser
 
 class Finances:
 
@@ -37,57 +38,48 @@ class Finances:
                 return float(l[MonthlyLimitModel.max_value])
         return 0
 
-    def save_card_statments(self,closing_date=None):
+    def save_card_statement(self,closing_date=None):
         """
         Get all card statments from Nubank and insert following the last one inserted by the date time.
         """
-        try:
-            base_date = DataBase.read_nubank_domain('last_card_statements') if closing_date == None else closing_date
-            base_date = datetime.strptime(base_date,"%Y-%m-%dT%H:%M:%SZ")
-            bills_list = []
-            for transaction in Nubank().get_card_statements():
-                date = datetime.strptime(transaction['time'],"%Y-%m-%dT%H:%M:%SZ")
-                if date > base_date:
-                    bill = NubankDebt(transaction)
-                    bills_list.append(bill.to_list())
-                    bills_list.extend([b.to_list() for b in bill.get_payment_charges()])
-            result = GSheets().append(bills_list,DebtModel.table)
-            DataBase.write_nubank_domain('last_card_statements',datetime.strftime(datetime.now(),"%Y-%m-%dT%H:%M:%SZ"))
-        except Exception as e:
-            result = 0
-            raise e
-        finally:
-            return result
+        base_date = DataBase.read_nubank_domain('last_card_statements') if closing_date == None else closing_date
+        base_date = dateutil.parser.parse(base_date)
+        bills_list = []
+        for transaction in Nubank().get_card_statements():
+            #date = datetime.strptime(transaction['time'],"%Y-%m-%dT%H:%M:%SZ")
+            date = dateutil.parser.parse(transaction['time'])
+            if date > base_date:
+                bill = NubankDebt(transaction)
+                bills_list.append(bill.to_list())
+                bills_list.extend([b.to_list() for b in bill.get_payment_charges()])
+        result = GSheets().append(bills_list,DebtModel.table)
+        DataBase.write_nubank_domain('last_card_statements',datetime.strftime(datetime.now(),"%Y-%m-%dT%H:%M:%SZ"))
+        return result
         
     def save_account_statements(self):
         """
         Get all account statments from nubank and insert following the last one inserted by id.
         """
-        try:
-            base_id = DataBase.read_nubank_domain('last_account_id')
-            bills_list = []
-            transactions = Nubank().get_account_statements()
-            next_page = transactions['pageInfo']['hasNextPage'] #TODO implementar auto paginação
-            last_id = None
-            for transaction in transactions['edges']:
-                last_id = transaction['node']['id'] if last_id is None else last_id
-                if base_id == transaction['node']['id']:
-                    DataBase.write_nubank_domain('last_account_id',last_id)
-                    base_id = last_id
-                    break
-                bill = NuAccountDebt(transaction['node'])
-                bills_list.append(bill.to_list())
-                bills_list.extend([b.to_list() for b in bill.get_payment_charges()])
-            if base_id != last_id:
-                logging.warning(f'Last id not found, maybe pagination was required.')
-            result = GSheets().append(bills_list,DebtModel.table)
-            DataBase.write_nubank_domain('last_account_statements',datetime.strftime(datetime.now(),"%Y-%m-%dT%H:%M:%SZ"))
-            return result
-        except Exception as e:
-            result = 0
-            raise e
-        finally:
-            return result
+
+        base_id = DataBase.read_nubank_domain('last_account_id')
+        bills_list = []
+        transactions = Nubank().get_account_statements()
+        next_page = transactions['pageInfo']['hasNextPage'] #TODO implementar auto paginação
+        last_id = None
+        for transaction in transactions['edges']:
+            last_id = transaction['node']['id'] if last_id is None else last_id
+            if base_id == transaction['node']['id']:
+                DataBase.write_nubank_domain('last_account_id',last_id)
+                base_id = last_id
+                break
+            bill = NuAccountDebt(transaction['node'])
+            bills_list.append(bill.to_list())
+            bills_list.extend([b.to_list() for b in bill.get_payment_charges()])
+        if base_id != last_id:
+            logging.warning(f'Last id not found, maybe pagination was required.')
+        result = GSheets().append(bills_list,DebtModel.table)
+        DataBase.write_nubank_domain('last_account_statements',datetime.strftime(datetime.now(),"%Y-%m-%dT%H:%M:%SZ"))
+        return result
 
     def save_csv_account_statements(self,csv_filename=CONS.CSVNUAFILE):
         """

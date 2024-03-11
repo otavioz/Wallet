@@ -6,6 +6,7 @@ from finances.model import DebtModel
 import consts as CONST
 from db.db import DataBase
 import logging
+import dateutil.parser
 
 #TODO Analise do VALOR deeve sempre vir primeiro que a CATEGORIA
 
@@ -150,14 +151,15 @@ class NubankDebt(Debt):
                 origin= "Nubank",
                 amount= self.__getamount(jsn),
                 category= jsn['title'],
-                timedate= datetime.strptime(jsn['time'],"%Y-%m-%dT%H:%M:%SZ"),
+                #timedate= datetime.strptime(jsn['time'],"%Y-%m-%dT%H:%M:%SZ"),
+                timedate = dateutil.parser.parse(jsn['time']),
                 ref_month= self.__get_refmonth(jsn['time']),
                 details=self.__get_details(jsn['details']))
         self.__add_payment_charges()
 
     def __get_refmonth(self,datetime_):
         closing_day = Debt.get_closing_day()
-        ref_month = datetime.strptime(datetime_,"%Y-%m-%dT%H:%M:%SZ")
+        ref_month = dateutil.parser.parse(datetime_) #,"%Y-%m-%dT%H:%M:%SZ")
         if ref_month.day >= closing_day:
             ref_month = ref_month + relativedelta(months=1)
         return ref_month
