@@ -213,8 +213,10 @@ class NubankDebt(Debt):
             if input['status'] == 'denied':
                details.append('Purchase Denied') 
         if 'fx' in input:
-            details.append('Purchase of {} {} with exchange rate of {} (Equal to {} USD)'.format(input["currency_origin"], 
-                                                                                                 input["precise_amount_origin"], input["exchange_rate"], input["precise_amount_usd"]))
+            details.append('Purchase of {} {} with exchange rate of {} (Equal to {} USD)'.format(input['fx']["currency_origin"], 
+                                                                                                 input['fx']["precise_amount_origin"],
+                                                                                                 input['fx']["exchange_rate"],
+                                                                                                 input['fx']["precise_amount_usd"]))
         return ' | '.join(details)
     
     def __get_id(self,jsn):

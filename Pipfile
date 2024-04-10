@@ -11,6 +11,7 @@ python-dateutil = "*"
 python-telegram-bot = "*"
 python-dotenv = "*"
 pytz = "*"
+xmltodict = "*"
 
 [dev-packages]
 
