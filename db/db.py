@@ -1,4 +1,5 @@
 ﻿from configparser import ConfigParser as CP
+import json
 import consts as CONS
 from ast import literal_eval
 
@@ -43,4 +44,7 @@ class DataBase:
         config.set("CURRENCY",key,str(value))
         config.write(cnfFile)
         cnfFile.close()
+    
+    def get_tags():
+        return json.load(open('db/tagged_purchases.json', encoding='utf-8-sig'))
     

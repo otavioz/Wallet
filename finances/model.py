@@ -6,7 +6,7 @@ import os
 from dotenv import load_dotenv
 
 base = 'Geral'
-debt = '2024' if os.getenv('env') == 'PROD' else 'Teste'
+base_year = os.getenv('base_year')
 
 class ArrearModel:
     table = f'{base}!B5:F35'
@@ -31,15 +31,16 @@ class CategoryModel:
     value_2 = 3
 
 class DebtModel:
-    table = f'{debt}!A14:K900'
+    table = f'{base_year}!A14:L900'
     title= 0
     origin= 1
     amount= 2
     category= 3
     timedate= 4
     ref_month= 5
-    details= 6
-    debtor= 7
-    created_date= 8
-    external_id = 9
-    tags = 10
+    sub_origin = 6
+    details= 7
+    debtor= 8
+    created_date= 9
+    external_id = 10
+    tag = 11

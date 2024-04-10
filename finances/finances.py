@@ -121,6 +121,7 @@ class Finances:
             raise FileNotFoundError(f'No such file {csv_filename}') 
         except Exception as e:
             result = 0
+            logging.error(f'[save_csv_account_statements] - {e}') #TODO exception hanlder não capturou o list index out of range
             raise e
         finally:
             return result

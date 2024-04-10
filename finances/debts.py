@@ -10,11 +10,6 @@ import dateutil.parser
 
 #TODO Analise do VALOR deeve sempre vir primeiro que a CATEGORIA
 
-DICTIONARY = {
-        'Cartão Físico': ['card_present'],
-        'Cartão Virtual': ['card_not_present'],
-        '':['None']}
-
 PAYMENT_EVENT_TYPES = (
     'TransferOutEvent',
     'TransferInEvent',
@@ -32,6 +27,8 @@ PAYMENT_EVENT_TYPES = (
     'PixTransferScheduledEvent',
 )
 
+DEFAULT_TAG = '#' #TODO não precisar disso, talvez colocar uma ultima coluna com end-line oculto?
+
 class Debt:
     def __init__(self,**kwargs):
         self.payment_charges = []
@@ -41,12 +38,13 @@ class Debt:
         self.category = kwargs.get('category')
         self.timedate = kwargs.get('timedate')
         self.ref_month = kwargs.get('ref_month')
+        self.sub_origin = kwargs.get('sub_origin')  if 'sub_origin' in kwargs else ''
         self.details = kwargs.get('details')
         self.debtor = kwargs.get('debtor') if 'debtor' in kwargs else ''
         self.created_date = kwargs.get('created_date') if 'created_date' in kwargs else datetime.now()
         self.external_id = kwargs.get('external_id') if 'external_id' in kwargs else ''
         #TODO: Incluir novos campos
-        #TODO: sistema de tags
+        self.tag = kwargs.get('tag') if 'tag' in kwargs else ''
         self.__update_values()
     
     def __str__(self):
@@ -63,6 +61,18 @@ class Debt:
             ID: {}
             """.format(self.title,self.origin,self.amount,self.category,self.timedate,self.ref_month,self.details,self.debtor,self.created_date,self.external_id)
 
+    def to_dict(self):
+        return {
+        "title": self.title,
+        "origin": self.origin,
+        "amount": self.amount,
+        "category": self.category,
+        "timedate": self.timedate,
+        "ref_month": self.ref_month,
+        "sub_origin": self.sub_origin,
+        "debtor": self.debtor,
+    }
+
     def to_list(self):
         return [
             self.title,
@@ -71,10 +81,12 @@ class Debt:
             self.category,
             self.timedate.strftime("%d/%m/%Y %H:%M:%S"),
             CONST.MONTHS[self.ref_month.month],
+            self.sub_origin,
             self.details,
             self.debtor,
             self.created_date.strftime("%d/%m/%Y %H:%M:%S"),
-            self.external_id
+            self.external_id,
+            self.tag
         ]
     def __update_values(self):
         origins = DataBase.read_debts_domain('origins')
@@ -112,6 +124,20 @@ class Debt:
 
     def __get_title(self,text):
         return text
+    
+
+    def __get_tag(self):
+        dict_ = self.to_dict()
+        final_tag = DEFAULT_TAG
+        for tag in DataBase.get_tags():
+            for field,value in tag.items():
+                if field != 'tag_name' and dict_[field] != value:
+                    final_tag = DEFAULT_TAG
+                    break
+                final_tag = tag['tag_name']
+            if final_tag != '':
+                return final_tag
+        return final_tag
 
     @staticmethod
     def get_closing_day():
@@ -154,7 +180,10 @@ class NubankDebt(Debt):
                 #timedate= datetime.strptime(jsn['time'],"%Y-%m-%dT%H:%M:%SZ"),
                 timedate = dateutil.parser.parse(jsn['time']),
                 ref_month= self.__get_refmonth(jsn['time']),
-                details=self.__get_details(jsn['details']))
+                sub_origin = self.__get_suborigin(jsn['details']),
+                details= self.__get_details(jsn['details']),
+                external_id = self.__get_id(jsn))
+        self.tag = self.__get_tag()
         self.__add_payment_charges()
 
     def __get_refmonth(self,datetime_):
@@ -170,17 +199,47 @@ class NubankDebt(Debt):
             return -int(jsn['details']['charges']['amount'])/100
         return -int(jsn['amount'])/100
 
+    def __get_suborigin(self,jsn):
+        if 'subcategory' in jsn:
+            if jsn['subcategory'] == 'card_not_present':
+                return 'Virtual C.C.'
+            elif jsn['subcategory'] == 'card_present':
+                return 'Physical C.C.'
+        return 'Unknown'
+
     def __get_details(self,input):
         details = []
-        if 'subcategory' in input:
-            details.extend([key for key,value in DICTIONARY.items() if input['subcategory'] in value])
+        if 'status' in input:
+            if input['status'] == 'denied':
+               details.append('Purchase Denied') 
+        if 'fx' in input:
+            details.append('Purchase of {} {} with exchange rate of {} (Equal to {} USD)'.format(input["currency_origin"], 
+                                                                                                 input["precise_amount_origin"], input["exchange_rate"], input["precise_amount_usd"]))
         return ' | '.join(details)
+    
+    def __get_id(self,jsn):
+        if 'id' in jsn:
+            return jsn['id']
+        return ''
 
     def __add_payment_charges(self):
         for c in range(1,self.count):
             copy_input = copy.copy(self)
             copy_input.ref_month = copy_input.ref_month + relativedelta(months=c)
             self.payment_charges.append(copy_input)
+    
+    def __get_tag(self):
+        dict_ = self.to_dict()
+        final_tag = DEFAULT_TAG
+        for tag in DataBase.get_tags():
+            for field,value in tag.items():
+                if field != 'tag_name' and dict_[field] != value:
+                    final_tag = DEFAULT_TAG
+                    break
+                final_tag = tag['tag_name']
+            if final_tag != '':
+                return final_tag
+        return final_tag
 
 class NuAccountDebt(Debt):
     def __init__(self,jsn):
@@ -193,6 +252,7 @@ class NuAccountDebt(Debt):
                 ref_month= self.__get_refmonth(jsn['postDate']),
                 details=self.__get_details(jsn),
                 debtor=self.__get_debtor(jsn['detail']))
+        self.tag = self.__get_tag()
         self.__add_payment_charges()
 
     def __get_category(self,jsn):
@@ -259,6 +319,19 @@ class NuAccountDebt(Debt):
     def get_payment_charges(self):
         return self.payment_charges
 
+    def __get_tag(self):
+        dict_ = self.to_dict()
+        final_tag = DEFAULT_TAG
+        for tag in DataBase.get_tags():
+            for field,value in tag.items():
+                if field != 'tag_name' and dict_[field] != value:
+                    final_tag = DEFAULT_TAG
+                    break
+                final_tag = tag['tag_name']
+            if final_tag != '':
+                return final_tag
+        return final_tag
+
 class DriveDebt(Debt):
     def __init__(self,jsn):
         model = DebtModel
@@ -269,9 +342,12 @@ class DriveDebt(Debt):
                 category= jsn[model.category],
                 timedate= datetime.strptime(jsn[model.timedate],"%d/%m/%Y %H:%M:%S"),
                 ref_month= self.__get_refmonth(jsn[model.ref_month]),
+                sub_origin= jsn[model.sub_origin],
                 details= jsn[model.details],
                 debtor= jsn[model.debtor],
-                created_date= datetime.strptime(jsn[model.created_date],"%d/%m/%Y %H:%M:%S"))
+                created_date= datetime.strptime(jsn[model.created_date],"%d/%m/%Y %H:%M:%S"),
+                external_id= jsn[model.external_id],
+                tag= jsn[model.tag])
 
     def __get_refmonth(self,input):
         month_num = 1
@@ -290,6 +366,7 @@ class CSVAccountDebt(Debt):
         category = self.__get_category(description)
         timedate = datetime.strptime(create_date,"%d/%m/%Y")
         ref_month = self.__get_refmonth(create_date)
+        sub_origin = self.__get_suborigin(description)
         details = self.__get_details(description)
         debtor = self.__get_debtor(description)
         created_date = datetime.now()
@@ -302,10 +379,13 @@ class CSVAccountDebt(Debt):
                 category = category,
                 timedate = timedate,
                 ref_month = ref_month,
+                sub_origin = sub_origin,
                 details = details,
                 debtor = debtor,
                 created_date = created_date,
                 external_id = external_id)
+        
+        self.tag = self.__get_tag()
         self.__add_payment_charges()
 
     def __add_payment_charges(self):
@@ -320,6 +400,7 @@ class CSVAccountDebt(Debt):
                 category= 'pagamento',
                 timedate= self.timedate,
                 ref_month= self.ref_month,
+                sub_origin= 'movimentação',
                 details= 'Automatic created',
                 debtor= '',
             ))
@@ -330,19 +411,35 @@ class CSVAccountDebt(Debt):
         return text
 
     def __get_category(self,text):
-        if 'pix' in text.lower():
-            return 'pix'
-        elif 'nu reserva imediata' in text.lower():
+        if 'nu reserva imediata' in text.lower():
             return 'reserva'
+        elif 'aplicação' in text.lower():
+            return 'aplicação'
         elif 'pagamento da fatura' in text.lower():
             return 'pagamento'
         return 'movimentação'
+    
+    def __get_suborigin(self,text):
+        if 'pix' in text.lower():
+            return 'PIX'
+        elif 'boleto' in text.lower():
+            return 'Boleto'
+        elif 'transferência recebida' in text.lower():
+            return 'Transferência'
+        elif 'compra no débito' in text.lower():
+            return 'Débito'
+        elif 'aplicação' in text.lower():
+            return 'Aplicação'
+        return 'movimentação'
 
     def __get_details(self,text):
-        det = 'CSV Automated'
-        if '-' in text:
-            return f'{det} | {text.split("-")[1]}'
-        return det
+        detail = ['CSV Automated']
+        details = text.split(' - ')
+        details.pop(0) if details else False #Remove Title
+        details.pop(0) if details else False #Remove Debtor
+        for t in details:
+            detail.append(t)
+        return " | ".join(detail)
     
     def __get_refmonth(self,datetime_):
         closing_day = Debt.get_closing_day()
@@ -351,9 +448,24 @@ class CSVAccountDebt(Debt):
             ref_month = ref_month + relativedelta(months=1)
         return ref_month
     
-    def __get_debtor(self,input):
-        list_ = self.debtor_list()
-        for name in list_:
-            if name in input:
-                return name
-        return ''
+    def __get_debtor(self,description):
+        if len(description.split(' - ')) > 1:
+            return description.split(' - ')[1]
+        #list_ = self.debtor_list()
+        #for name in list_:
+        #    if name in input:
+        #        return name
+        #return ''
+    
+    def __get_tag(self):
+        dict_ = self.to_dict()
+        final_tag = DEFAULT_TAG
+        for tag in DataBase.get_tags():
+            for field,value in tag.items():
+                if field != 'tag_name' and dict_[field] != value:
+                    final_tag = DEFAULT_TAG
+                    break
+                final_tag = tag['tag_name']
+            if final_tag != '':
+                return final_tag
+        return final_tag

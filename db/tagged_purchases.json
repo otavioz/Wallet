@@ -1,0 +1,52 @@
+﻿[
+    {
+        "title": "",
+        "origin": "",
+        "amount": "",
+        "category": "",
+        "timedate": "",
+        "ref_month": "",
+        "sub_origin": "",
+        "debtor": "",
+        "tag_name": "Model"
+    },
+    {
+        "title": "Transferência enviada pelo Pix",
+        "debtor": "ADRIANA CANCADO MUNAYER",
+        "tag_name": "#terapia"
+    },
+    {
+        "title": "Pagamento de fatura",
+        "tag_name": "#faturaNu"
+    },
+    {
+        "title": "Valor Mensal Programado ",
+        "tag_name": "#reservaNu"
+    },
+    {
+        "title": "Conta Vivo",
+        "tag_name": "#faturaMovel"
+    },
+    {
+        "title": "Dm*Spotify",
+        "tag_name": "#faturaMovel"
+    },
+    {
+        "debtor": "SERVICO SOCIAL DO COMERCIO",
+        "tag_name": "#sesc"
+    },
+    {
+        "title": "Transferência enviada pelo Pix ",
+        "amount": -120.00,
+        "debtor": "OTAVIO RODRIGUES VENANCIO",
+        "tag_name": "#faturaInternet"
+    },
+    {
+        "debtor": "CONTRACTUAL MINAS",
+        "tag_name": "#condominio"
+    },
+    {
+        "debtor": "CEMIG DISTRIBUICAO",
+        "tag_name": "#luz"
+    }
+]
