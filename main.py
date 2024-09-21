@@ -14,9 +14,12 @@ import traceback
 from googleapiclient import errors
 from threading import Thread
 from handlers.finances import FinancesHandler
+from handlers.games import GamesHandler
+from handlers.gym import GymHandler
 from pynubank import exception as NuException
 import consts as CONS
 
+#https://api.telegram.org/bot1118783038:AAE8OQ4KX63PoURwi360wZRj32d0mcgBbOI/getUpdates 
 
 # Enable logging
 logging.basicConfig(
@@ -39,6 +42,14 @@ async def finances(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Data about the finances"""
     await FinancesHandler.finances(update=update)
 
+async def games(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Data about the games"""
+    await GamesHandler.games(update=update)
+
+async def gym(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Data about the gym"""
+    await GymHandler.gym(update=update)
+
 async def callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Parses the CallbackQuery and updates the message text."""
     query = update.callback_query
@@ -54,6 +65,10 @@ async def callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         await update.message.reply_text('✌')
     elif '/f' in query.data:
         await FinancesHandler.finances(update=query,callback=True)
+    elif '/g' in query.data:
+        await GamesHandler.games(update=query,callback=True)
+    elif '/m' in query.data:
+        await GymHandler.gym(update=query,callback=True)
     else:
         await update.message.reply_text('Not implemented function.')
 
@@ -131,7 +146,9 @@ def main() -> None:
     application = Application.builder().get_updates_http_version('1.1').http_version('1.1').token(os.getenv('bot_token')).defaults(defaults).build()
 
     # on different commands - answer in Telegram
-    application.add_handler(CommandHandler("finances", finances))
+    application.add_handler(CommandHandler("f", finances))
+    application.add_handler(CommandHandler("g", games))
+    application.add_handler(CommandHandler("m", gym))
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CallbackQueryHandler(callback))
 

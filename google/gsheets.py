@@ -16,8 +16,8 @@ class GSheets:
     # The file token.pickle stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
     # time.
-    def __init__(self):
-        self.sheet_id = os.getenv('spreadsheet_id')
+    def __init__(self, sheet='spreadsheet_id'):
+        self.sheet_id = os.getenv(sheet)  
         if os.path.exists('token.pickle'):
             with open('token.pickle', 'rb') as token:
                 self.creds = pickle.load(token)

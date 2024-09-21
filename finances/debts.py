@@ -61,7 +61,7 @@ class Debt:
             ID: {}
             """.format(self.title,self.origin,self.amount,self.category,self.timedate,self.ref_month,self.details,self.debtor,self.created_date,self.external_id)
 
-    def to_dict(self):
+    def __dict__(self):
         return {
         "title": self.title,
         "origin": self.origin,
@@ -127,10 +127,12 @@ class Debt:
     
 
     def __get_tag(self):
+        print('---------------------------')
         dict_ = self.to_dict()
         final_tag = DEFAULT_TAG
         for tag in DataBase.get_tags():
             for field,value in tag.items():
+                print(final_tag,field,value)
                 if field != 'tag_name' and dict_[field] != value:
                     final_tag = DEFAULT_TAG
                     break
@@ -141,7 +143,7 @@ class Debt:
 
     @staticmethod
     def get_closing_day():
-        return DataBase.read_debts_domain("closing_day")
+        return int(DataBase.read_debts_domain("closing_day"))
 
     def __get_refmonth(datetime_):
         """
@@ -231,10 +233,12 @@ class NubankDebt(Debt):
             self.payment_charges.append(copy_input)
     
     def __get_tag(self):
+        print('---------------------------')
         dict_ = self.to_dict()
         final_tag = DEFAULT_TAG
         for tag in DataBase.get_tags():
             for field,value in tag.items():
+                print(final_tag,field,value)
                 if field != 'tag_name' and dict_[field] != value:
                     final_tag = DEFAULT_TAG
                     break
@@ -322,10 +326,12 @@ class NuAccountDebt(Debt):
         return self.payment_charges
 
     def __get_tag(self):
+        print('---------------------------')
         dict_ = self.to_dict()
         final_tag = DEFAULT_TAG
         for tag in DataBase.get_tags():
             for field,value in tag.items():
+                print(final_tag,field,value)
                 if field != 'tag_name' and dict_[field] != value:
                     final_tag = DEFAULT_TAG
                     break
@@ -451,8 +457,9 @@ class CSVAccountDebt(Debt):
         return ref_month
     
     def __get_debtor(self,description):
-        if len(description.split(' - ')) > 1:
-            return description.split(' - ')[1]
+        split_desc = description.split(' - ') > 1
+        if len(split_desc) > 1:
+            return split_desc[1]
         #list_ = self.debtor_list()
         #for name in list_:
         #    if name in input:
@@ -460,14 +467,16 @@ class CSVAccountDebt(Debt):
         #return ''
     
     def __get_tag(self):
-        dict_ = self.to_dict()
+        dict_ = dict(self)
         final_tag = DEFAULT_TAG
         for tag in DataBase.get_tags():
             for field,value in tag.items():
-                if field != 'tag_name' and dict_[field] != value:
-                    final_tag = DEFAULT_TAG
+                if value == "":
                     break
-                final_tag = tag['tag_name']
-            if final_tag != '':
+                if field == 'tag_name':
+                    continue
+                else:
+                    final_tag = tag['tag_name'] if str(dict_[field]) in str(value) else DEFAULT_TAG
+            if final_tag != DEFAULT_TAG: #TODO:Append tag
                 return final_tag
         return final_tag

@@ -29,7 +29,11 @@
     },
     {
         "title": "Dm*Spotify",
-        "tag_name": "#faturaMovel"
+        "tag_name": "#spotify"
+    },
+    {
+        "title": "Dm *Spotify",
+        "tag_name": "#spotify"
     },
     {
         "debtor": "SERVICO SOCIAL DO COMERCIO",
@@ -37,7 +41,7 @@
     },
     {
         "title": "Transferência enviada pelo Pix ",
-        "amount": -120.00,
+        "amount": -100.00,
         "debtor": "OTAVIO RODRIGUES VENANCIO",
         "tag_name": "#faturaInternet"
     },

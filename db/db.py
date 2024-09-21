@@ -1,50 +1,53 @@
-﻿from configparser import ConfigParser as CP
+﻿import configparser
+import json
+from configparser import ConfigParser as CP
 import json
 import consts as CONS
 from ast import literal_eval
 
 
 class DataBase:
+    
+    @staticmethod
+    def _read_domain(domain, data):
+        config = configparser.ConfigParser()
+        config.read(CONS.DB_FILE_NAME)
+        return config.get(domain, data)
 
+    @staticmethod
+    def _write_domain(domain, key, value):
+        config = configparser.ConfigParser()
+        config.read(CONS.DB_FILE_NAME)
+        config.set(domain, key, str(value))
+        with open(CONS.DB_FILE_NAME, "w", encoding="utf-8") as cnfFile:
+            config.write(cnfFile)
+    
+    @staticmethod
     def read_debts_domain(data):
-        config = CP()
-        config.read(CONS.DB_FILE_NAME)
-        return literal_eval(config.get("DEBTS",data))
+        return literal_eval(DataBase._read_domain("DEBTS", data))
 
-    def write_debts_domain(key,value):
-        config = CP()
-        config.read(CONS.DB_FILE_NAME)
-        cnfFile = open(CONS.DB_FILE_NAME, "w",encoding="utf-8")
-        config.set("DEBTS",key,str(value))
-        config.write(cnfFile)
-        cnfFile.close()
+    @staticmethod
+    def write_debts_domain(key, value):
+        DataBase._write_domain("DEBTS", key, value)
     
+    @staticmethod
     def read_nubank_domain(data):
-        config = CP()
-        config.read(CONS.DB_FILE_NAME)
-        return config.get("NUBANK",data)
+        return DataBase._read_domain("NUBANK", data)
 
-    def write_nubank_domain(key,value):
-        config = CP()
-        config.read(CONS.DB_FILE_NAME)
-        cnfFile = open(CONS.DB_FILE_NAME, "w",encoding="utf-8")
-        config.set("NUBANK",key,str(value))
-        config.write(cnfFile)
-        cnfFile.close()
+    @staticmethod
+    def write_nubank_domain(key, value):
+        DataBase._write_domain("NUBANK", key, value)
 
+    @staticmethod
     def read_currency_domain(data):
-        config = CP()
-        config.read(CONS.DB_FILE_NAME)
-        return config.get("CURRENCY",data)
+        return DataBase._read_domain("CURRENCY", data)
 
-    def write_currency_domain(key,value):
-        config = CP()
-        config.read(CONS.DB_FILE_NAME)
-        cnfFile = open(CONS.DB_FILE_NAME, "w",encoding="utf-8")
-        config.set("CURRENCY",key,str(value))
-        config.write(cnfFile)
-        cnfFile.close()
+    @staticmethod
+    def write_currency_domain(key, value):
+        DataBase._write_domain("CURRENCY", key, value)
     
+    @staticmethod
     def get_tags():
-        return json.load(open('db/tagged_purchases.json', encoding='utf-8-sig'))
+        with open('db/tagged_purchases.json', encoding='utf-8-sig') as file:
+            return json.load(file)
     

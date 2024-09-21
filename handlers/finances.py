@@ -49,13 +49,13 @@ class FinancesHandler:
                 await update.message.reply_text('All records from the last one will be inserted, if the last record inserted is not in the file, they will all be inserted.')
                 await update.message.reply_text(FinancesHandler.insert_expenses_from_csv())
         else:
-            await update.message.reply_text("Sorry I dont understand what you said.")
+            await update.message.reply_text("Sorry, I didn't understand your request.")
 
     def insert_expenses_from_csv():
         messages = ''
         try:
             result = Finances().save_csv_account_statements()
-        except FileNotFoundError:
+        except FileNotFoundError as e:
             result = 0
             messages += '\n No such file.'
             logging.error(' [insert_expenses_from_csv] {}'.format(e))

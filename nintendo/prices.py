@@ -22,15 +22,16 @@ class PriceAPI:
                         price = response['prices'][0]
                         discounted = True if len(response['prices']) > 1 else False
                         if price['sales_status'] != 'not_found': #What we want is onsale
-                            game.add_price(price['regular_price']['raw_value'],
+                            if 'regular_price' in price:
+                                game.add_price(price['regular_price']['raw_value'],
                                             region,
                                             price['regular_price']['currency'],
                                             discounted,
                                             price['discount_price']['raw_value'] if discounted else 0,
                                             price['discount_price']['start_datetime'] if discounted else None,
-                                            price['discount_price']['end_datetime'] if discounted else None)
-                            tax = currency_values['quotes'][f'USD{price["regular_price"]["currency"]}'] if price["regular_price"]["currency"] != 'USD' else 1
-                            game.add_price(float(price['regular_price']['raw_value']) / tax * currency_values['quotes']['USDBRL'],
+                                            price['discount_price']['end_datetime'] if discounted else None)               
+                                tax = currency_values['quotes'][f'USD{price["regular_price"]["currency"]}'] if price["regular_price"]["currency"] != 'USD' else 1
+                                game.add_price(float(price['regular_price']['raw_value']) / tax * currency_values['quotes']['USDBRL'],
                                             region,
                                             price['regular_price']['currency'],
                                             discounted,
