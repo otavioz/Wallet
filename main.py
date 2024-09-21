@@ -16,6 +16,7 @@ from threading import Thread
 from handlers.finances import FinancesHandler
 from handlers.games import GamesHandler
 from handlers.gym import GymHandler
+from handlers.diet import DietHandler
 from pynubank import exception as NuException
 import consts as CONS
 
@@ -50,6 +51,11 @@ async def gym(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Data about the gym"""
     await GymHandler.gym(update=update)
 
+async def diet(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Data about the diet"""
+    await DietHandler.diet(update=update)
+
+
 async def callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Parses the CallbackQuery and updates the message text."""
     query = update.callback_query
@@ -62,15 +68,17 @@ async def callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await query.edit_message_text(text=f'✅ {selected}')
     
     if '/cancel' in query.data:
-        await update.message.reply_text('✌')
+        await query.message.reply_text('✌')
     elif '/f' in query.data:
         await FinancesHandler.finances(update=query,callback=True)
     elif '/g' in query.data:
         await GamesHandler.games(update=query,callback=True)
     elif '/m' in query.data:
         await GymHandler.gym(update=query,callback=True)
+    elif '/d' in query.data:
+        await DietHandler.diet(update=query,callback=True)
     else:
-        await update.message.reply_text('Not implemented function.')
+        await query.message.reply_text('Not implemented function.')
 
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -78,14 +86,22 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     await update.message.reply_text("Help!")
 
 
-async def downloader(update, context):
-    if update.message.document.mime_type != 'text/csv' and update.message.document.mime_type != 'text/comma-separated-values':
-       await update.message.reply_text('The file must be an CSV.')
-    else:
+async def doc_downloader(update, context):
+    if update.message.document.mime_type == 'text/csv' or update.message.document.mime_type != 'text/comma-separated-values':
         file = await context.bot.get_file(update.message.document)
         await file.download_to_drive(CONS.CSVNUAFILE)
         await FinancesHandler.finances(update=update,file=True)
+    else:
+       await update.message.reply_text('File not compatible.')
+
+async def voice_downloader(update, context):
+    if update.message.voice.mime_type == 'audio/ogg':
+        file = await context.bot.get_file(update.message.voice.file_id)
+        await file.download_to_drive(CONS.AUDIOFILE)
+        await DietHandler.diet(update=update,file=True)
         #await update.message.reply_text('File donwloaded')
+    else:
+       await update.message.reply_text('File not compatible.')
     
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Echo the user message."""
@@ -149,11 +165,15 @@ def main() -> None:
     application.add_handler(CommandHandler("f", finances))
     application.add_handler(CommandHandler("g", games))
     application.add_handler(CommandHandler("m", gym))
+    application.add_handler(CommandHandler("d", diet))
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CallbackQueryHandler(callback))
 
     #File handler
-    application.add_handler(MessageHandler(filters.Document.ALL, downloader))
+    application.add_handler(MessageHandler(filters.Document.ALL, doc_downloader))
+
+    #File handler
+    application.add_handler(MessageHandler(filters.VOICE, voice_downloader))
 
     # on non command i.e message - echo the message on Telegram
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))

@@ -7,6 +7,9 @@ MONTHS = ['All','Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','A
 #DB
 DB_FILE_NAME = "db/db.cfg"
 CSVNUAFILE = 'files/nuaccount.csv'
+AUDIOFILE = 'files/voice.ogg'
+TRANSFILE = 'files/voice.txt'
+DIETCOMMA = ' vírgula '
 
 #API KEY CURRENCY LAYER FREE PLAN
 URL_CURRENCYL = "http://api.currencylayer.com/live"

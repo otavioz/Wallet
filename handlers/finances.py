@@ -45,7 +45,7 @@ class FinancesHandler:
             elif text[1] == 'limit':
                 await update.message.reply_text("Help!")
         elif step == 3:
-            if text[1] == 'csvnuc':
+            if text[1] == 'csvnuc' and text[2] == CONS.CSVNUAFILE:
                 await update.message.reply_text('All records from the last one will be inserted, if the last record inserted is not in the file, they will all be inserted.')
                 await update.message.reply_text(FinancesHandler.insert_expenses_from_csv())
         else:
