@@ -127,7 +127,6 @@ class Debt:
     
 
     def __get_tag(self):
-        print('---------------------------')
         dict_ = self.to_dict()
         final_tag = DEFAULT_TAG
         for tag in DataBase.get_tags():
@@ -233,7 +232,6 @@ class NubankDebt(Debt):
             self.payment_charges.append(copy_input)
     
     def __get_tag(self):
-        print('---------------------------')
         dict_ = self.to_dict()
         final_tag = DEFAULT_TAG
         for tag in DataBase.get_tags():
@@ -326,7 +324,6 @@ class NuAccountDebt(Debt):
         return self.payment_charges
 
     def __get_tag(self):
-        print('---------------------------')
         dict_ = self.to_dict()
         final_tag = DEFAULT_TAG
         for tag in DataBase.get_tags():

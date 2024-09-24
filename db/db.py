@@ -50,4 +50,8 @@ class DataBase:
     def get_tags():
         with open('db/tagged_purchases.json', encoding='utf-8-sig') as file:
             return json.load(file)
-    
+        
+    @staticmethod
+    def get_preset_meals():
+        with open('db/preste_meals.json', encoding='utf-8-sig') as file:
+            return json.load(file)

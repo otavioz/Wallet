@@ -38,13 +38,15 @@ class DietHandler:
                 await update.message.reply_text('Success! Your meal was recorded.')
         elif step == 3:
             if text[1] == 'audio' and text[2] == CONS.AUDIOFILE:
-                text = DietHandler.audio_transcription()
-                DietHandler.write_transcription_to_file(text)
-
                 dishes =  'Você acabou de comer o descrito abaixo?\n'
-                for n,d in enumerate(text.lower().split(CONS.DIETCOMMA)):
-                    dishes += f'{n+1} - {d.title()}\n'
-    
+                text = DietHandler.audio_transcription()
+                temp_text = ''
+                for n,d in enumerate(Diet().get_meals(text)):
+                    dishes += f'{n+1} - {d[0].capitalize()} ({d[1]}g|ml)\n'
+                    temp_text += f'{d[0]},{d[1]}\n'
+                DietHandler.write_transcription_to_file(temp_text) 
+
+                #dishes += Diet().get_meals(text)
                 keyboard = [
                     [InlineKeyboardButton("Yes", callback_data=f'/d;dishes;text')],
                     [InlineKeyboardButton("No", callback_data="/cancel")]]
@@ -87,9 +89,9 @@ class DietHandler:
         Writes the transcribed text to the output file.
         """
         with open(output_file, 'w', encoding='UTF-8') as f:
-            for d in text.lower().split(CONS.DIETCOMMA):
-                f.write(d)
-                f.write('\n')
+            #for d in text.lower().split(CONS.DIETCOMMA):
+            f.write(text)
+            #    f.write('\n')
     
     def insert_meal():
         messages = ''
