@@ -2,6 +2,7 @@
 /keys
 /testcases
 /files
+/db/conversationbot
 .env
 test.py
 token.pickle

@@ -82,9 +82,9 @@ class Diet:
         return results
     
     def number_converter(self,text: str) -> str:
-        numbers = {'meia':0.5,'uma':1,'um':1,'dois':2,'três':3,'quatro':4,'cinco':5,'seis':6,'sete':7,'oito':8,'nove':9,'dez':10}
+        numbers = {'um quarto':1/4,'meia':0.5,'uma':1,'um':1,'dois':2,'três':3,'quatro':4,'cinco':5,'seis':6,'sete':7,'oito':8,'nove':9,'dez':10}
         for num,dec in numbers.items():
-            if num in text:
+            if num in text or str(dec) in text: 
                 dec = str(dec)
                 text = text.replace(num,dec)
                 return text,dec

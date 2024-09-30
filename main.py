@@ -5,7 +5,7 @@ from telegram import ForceReply, Update
 import pytz
 import datetime as dtm
 from telegram.constants import ParseMode
-from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes, MessageHandler, Defaults,filters
+from telegram.ext import Application, CallbackQueryHandler, CommandHandler, ContextTypes, MessageHandler, Defaults,filters,PicklePersistence
 import os
 from dotenv import load_dotenv
 import time as ttime
@@ -27,7 +27,6 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.WARNING,filename=f'log.log'
 )
 logger = logging.getLogger(__name__)
-
 
 # Define a few command handlers. These usually take the two arguments update and
 # context.
@@ -53,7 +52,7 @@ async def gym(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def diet(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Data about the diet"""
-    await DietHandler.diet(update=update)
+    await DietHandler.diet(update=update,context=context)
 
 
 async def callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -68,6 +67,7 @@ async def callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await query.edit_message_text(text=f'✅ {selected}')
     
     if '/cancel' in query.data:
+        context.user_data['conversation'] = None
         await query.message.reply_text('✌')
     elif '/f' in query.data:
         await FinancesHandler.finances(update=query,callback=True)
@@ -76,7 +76,7 @@ async def callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     elif '/m' in query.data:
         await GymHandler.gym(update=query,callback=True)
     elif '/d' in query.data:
-        await DietHandler.diet(update=query,callback=True)
+        await DietHandler.diet(update=query,callback=True,context=context)
     else:
         await query.message.reply_text('Not implemented function.')
 
@@ -105,8 +105,12 @@ async def voice_downloader(update, context):
     
 async def echo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Echo the user message."""
-    #await update.message.reply_text(update.message.text)
-    await update.message.reply_text('Use /help to know what I can do!')
+    reply_text = "Hi! My name is OtavioBot."
+    #if context.user_data['conversation']:
+    if '/d' in context.user_data['conversation']: #txt.startswith("Hello")
+        await DietHandler.diet(update=update,context=context)
+    else:
+        await update.message.reply_text(reply_text)
 
 async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Log the error and send a telegram message to notify the developer."""
@@ -130,8 +134,7 @@ async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> N
     #)
     message = (f"Warning: \n{html.escape(tb_list[-1]).split(':')[-1]}")
     # Finally, send the message
-    await context.bot.send_message(chat_id=os.getenv('mychat_id'), text=message, parse_mode=ParseMode.HTML
-    )
+    await context.bot.send_message(chat_id=os.getenv('mychat_id'), text=message, parse_mode=ParseMode.HTML)
 
 def batch():
     start_hour = 5
@@ -159,7 +162,9 @@ def main() -> None:
     """Start the bot."""
     # Create the Application and pass it your bot's token.
     defaults = Defaults(parse_mode=ParseMode.HTML, tzinfo=pytz.timezone('America/Sao_Paulo'))
-    application = Application.builder().get_updates_http_version('1.1').http_version('1.1').token(os.getenv('bot_token')).defaults(defaults).build()
+
+    persistence = PicklePersistence(filepath="db/conversationbot")
+    application = Application.builder().get_updates_http_version('1.1').http_version('1.1').token(os.getenv('bot_token')).persistence(persistence).defaults(defaults).build()
 
     # on different commands - answer in Telegram
     application.add_handler(CommandHandler("f", finances))

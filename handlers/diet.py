@@ -1,6 +1,6 @@
 ﻿from datetime import  datetime
 import os
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ForceReply
 import logging
 import speech_recognition as sr
 from pydub import AudioSegment
@@ -10,14 +10,22 @@ from diet.diet import Diet
 
 class DietHandler:
 
-    async def diet(update,callback=False,file=False):
-        if callback:
-            text = update.data.split(';')
-        elif file:
-            text = ['/d','audio',CONS.AUDIOFILE]
-        else:
-            text = update.message.text.split(';')
+    async def diet(update,callback=False,context=None,file=False):
 
+        
+        if callback:
+            text = update.data #.split(';')
+        elif file:
+            text = f'/d;audio;{CONS.AUDIOFILE}'
+        else:
+            text = update.message.text #.split(';')
+
+        if context.user_data['conversation']:
+            #text.insert(0,context.user_data['conversation'])
+            text = context.user_data['conversation'] + text
+        context.user_data['conversation'] = None
+
+        text = text.split(';')
         step = len(text)
         if step == 1:
             keyboard = [
@@ -33,13 +41,19 @@ class DietHandler:
             if text[1] == 'day':
                 await update.message.reply_text('WIP!')
             elif text[1] == 'audio':
-                await update.message.reply_text('Please, record and audio telling what are you eating or ate.')
+                context.user_data['conversation'] = '/d;audio;'
+                await update.message.reply_text('Please, record and audio telling what are you eating or ate or write it using the follow template:\n[quantity] [grammage] [food],...',entities=ForceReply())
             elif text[1] == 'dishes':
                 await update.message.reply_text('Success! Your meal was recorded.')
         elif step == 3:
-            if text[1] == 'audio' and text[2] == CONS.AUDIOFILE:
+            if text[1] == 'audio': # and text[2] == CONS.AUDIOFILE:
+
+                if text[2] == CONS.AUDIOFILE:
+                    text = DietHandler.audio_transcription()
+                else:
+                    text = text[2].replace(',',CONS.DIETCOMMA)
+
                 dishes =  'Você acabou de comer o descrito abaixo?\n'
-                text = DietHandler.audio_transcription()
                 temp_text = ''
                 for n,d in enumerate(Diet().get_meals(text)):
                     dishes += f'{n+1} - {d[0].capitalize()} ({d[1]}g|ml)\n'
@@ -51,7 +65,7 @@ class DietHandler:
                     [InlineKeyboardButton("Yes", callback_data=f'/d;dishes;text')],
                     [InlineKeyboardButton("No", callback_data="/cancel")]]
                 reply_markup = InlineKeyboardMarkup(keyboard)
-
+                context.user_data['conversation'] = None
                 await update.message.reply_text(dishes,reply_markup=reply_markup)
             elif text[1] == 'dishes' and text[2] == 'text':
                 await update.message.reply_text(DietHandler.insert_meal())
