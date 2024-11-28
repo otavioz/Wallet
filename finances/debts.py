@@ -131,7 +131,6 @@ class Debt:
         final_tag = DEFAULT_TAG
         for tag in DataBase.get_tags():
             for field,value in tag.items():
-                print(final_tag,field,value)
                 if field != 'tag_name' and dict_[field] != value:
                     final_tag = DEFAULT_TAG
                     break
@@ -236,7 +235,6 @@ class NubankDebt(Debt):
         final_tag = DEFAULT_TAG
         for tag in DataBase.get_tags():
             for field,value in tag.items():
-                print(final_tag,field,value)
                 if field != 'tag_name' and dict_[field] != value:
                     final_tag = DEFAULT_TAG
                     break
@@ -328,7 +326,6 @@ class NuAccountDebt(Debt):
         final_tag = DEFAULT_TAG
         for tag in DataBase.get_tags():
             for field,value in tag.items():
-                print(final_tag,field,value)
                 if field != 'tag_name' and dict_[field] != value:
                     final_tag = DEFAULT_TAG
                     break

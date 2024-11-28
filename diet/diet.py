@@ -32,16 +32,16 @@ class Diet:
         """
         # Dictionary to map units to their respective multipliers
         unit_multipliers = {
-            ' ml': 1,
-            ' g': 1,
-            ' colheres de sopa': 15,
-            ' colheres de chá': 5,
-            ' colher de sopa': 15,
-            ' colher de chá': 5,
-            ' colheres': 15,
-            ' colher': 15,
-            ' unidades': 1,
-            ' unidade': 1
+            ' ml ': 1,
+            ' g ': 1,
+            ' colheres de sopa ': 15,
+            ' colheres de chá ': 5,
+            ' colher de sopa ': 15,
+            ' colher de chá ': 5,
+            ' colheres ': 15,
+            ' colher ': 15,
+            ' unidades ': 1,
+            ' unidade ': 1
         }
 
         results = []

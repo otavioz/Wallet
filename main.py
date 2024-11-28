@@ -187,10 +187,10 @@ def main() -> None:
     application.add_error_handler(error_handler)
 
     #Batch thread
-    if os.getenv('env') == 'PROD':
-        t = Thread(target=batch, daemon=True)
-        t.start()
-        print('[BATCH is running]')
+    #if os.getenv('env') == 'PROD':
+    #    t = Thread(target=batch, daemon=True)
+    #    t.start()
+    #    print('[BATCH is running]')
 
     # Run the bot until the user presses Ctrl-C
     print('[application polling running]')
